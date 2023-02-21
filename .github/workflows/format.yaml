@@ -20,10 +20,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.toml')}}
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: install clippy
   
       - uses: actions-rs/cargo@v1
         with:
