@@ -15,6 +15,8 @@ jobs:
         with:
           toolchain: nightly
           override: true
+          components: clippy
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.toml')}}
