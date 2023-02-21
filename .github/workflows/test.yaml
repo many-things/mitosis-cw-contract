@@ -22,10 +22,10 @@ jobs:
       #     path: ~/target
       #     key: ${{ runner.os }}-rust-${{ hashFiles('Cargo.toml')}}
 
-      - uses: action/cache@v3
+      - uses: actions/cache@v3
         with:
           path: ~/target
-          key: ${{ runner.os }}-rust-${{ hashFiles('Cargo.toml')}}
+          key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.toml')}}
 
       - name: Run Test
         run: cargo test --workspace
