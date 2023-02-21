@@ -32,70 +32,75 @@ jobs:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
           RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-
+  
       - id: coverage  
         uses: actions-rs/grcov@v0.1   
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3 
+        with: 
+          token: ${{secrets.CODECOV_TOKEN}}
+          files: ${{ steps.coverage.outputs.report }}
+          fail_ci_if_error: true
 
-  notify-slack:
-    name: Slack Notification
-    runs-on: ubuntu-latest
-    needs: [check]
-    if: always()
-    steps:
-      - name: Send CI Result
-        env:
-          SLACK_TITLE: "${{ needs.check.result == 'success' && ':white_check_mark: PR CI Passed' || ':x: PR CI Failed' }}"
-        run: |
-          curl --request POST \
-          --url ${{ secrets.SLACK_HOOK_URL }} \
-          --data '{
-              "text": "",
-              "blocks": [
-                  {
-                      "type": "header",
-                      "text": {
-                          "type": "plain_text",
-                          "text": "${{ env.SLACK_TITLE }}",
-                          "emoji": true
-                      }
-                  },
-                  {
-                      "type": "section",
-                      "fields": [
-                          {
-                              "type": "mrkdwn",
-                              "text": "*Repo:*\n${{ github.event.repository.name }}",
-                          }, 
-                          {
-                              "type": "mrkdwn",
-                              "text": "*Branch:*\n${{ github.head_ref }}",
-                          },
-                      ]
-                  },
-                  {
-                      "type": "section",
-                      "fields": [
-                          {
-                              "type": "mrkdwn",
-                              "text": "*PR Name:*\n${{ github.event.pull_request.title }}"
-                          },
-                          {
-                              "type": "mrkdwn",
-                              "text": "*Author:*\n${{ github.event.pull_request.user.login }}"
-                          }
-                      ]
-                  },
-                  {
-                      "type": "section",
-                      "fields": [
-                          {
-                              "type": "mrkdwn",
-                              "text": "<https://github.com/many-things/${{github.event.repository.name}}/pull/${{github.event.number}}|Show Pull Request>"
-                          }
-                      ]
-                  }
-              ]
-          }'
+
+  # notify-slack:
+  #   name: Slack Notification
+  #   runs-on: ubuntu-latest
+  #   needs: [check]
+  #   if: always()
+  #   steps:
+  #     - name: Send CI Result
+  #       env:
+  #         SLACK_TITLE: "${{ needs.check.result == 'success' && ':white_check_mark: PR CI Passed' || ':x: PR CI Failed' }}"
+  #       run: |
+  #         curl --request POST \
+  #         --url ${{ secrets.SLACK_HOOK_URL }} \
+  #         --data '{
+  #             "text": "",
+  #             "blocks": [
+  #                 {
+  #                     "type": "header",
+  #                     "text": {
+  #                         "type": "plain_text",
+  #                         "text": "${{ env.SLACK_TITLE }}",
+  #                         "emoji": true
+  #                     }
+  #                 },
+  #                 {
+  #                     "type": "section",
+  #                     "fields": [
+  #                         {
+  #                             "type": "mrkdwn",
+  #                             "text": "*Repo:*\n${{ github.event.repository.name }}",
+  #                         }, 
+  #                         {
+  #                             "type": "mrkdwn",
+  #                             "text": "*Branch:*\n${{ github.head_ref }}",
+  #                         },
+  #                     ]
+  #                 },
+  #                 {
+  #                     "type": "section",
+  #                     "fields": [
+  #                         {
+  #                             "type": "mrkdwn",
+  #                             "text": "*PR Name:*\n${{ github.event.pull_request.title }}"
+  #                         },
+  #                         {
+  #                             "type": "mrkdwn",
+  #                             "text": "*Author:*\n${{ github.event.pull_request.user.login }}"
+  #                         }
+  #                     ]
+  #                 },
+  #                 {
+  #                     "type": "section",
+  #                     "fields": [
+  #                         {
+  #                             "type": "mrkdwn",
+  #                             "text": "<https://github.com/many-things/${{github.event.repository.name}}/pull/${{github.event.number}}|Show Pull Request>"
+  #                         }
+  #                     ]
+  #                 }
+  #             ]
+  #         }'
