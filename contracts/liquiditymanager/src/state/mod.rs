@@ -1,8 +1,7 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+pub mod balances;
 
-use cosmwasm_std::{Addr, Storage, Env, StdResult};
 use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Addr, Env, StdResult, Storage};
 use cw_storage_plus::Item;
 
 use crate::ContractError;
@@ -12,7 +11,6 @@ pub const OWNER: Item<Addr> = Item::new(OWNER_KEY);
 
 pub const PAUSED_KEY: &str = "paused";
 pub const PAUSED: Item<PauseInfo> = Item::new(PAUSED_KEY);
-
 
 #[cw_serde]
 #[derive(Default)]
@@ -45,7 +43,7 @@ impl PauseInfo {
 
     pub fn assert_not_paused(self) -> Result<Self, ContractError> {
         if self.paused {
-            return Err(ContractError::PausedError {  });
+            return Err(ContractError::PausedError {});
         }
 
         Ok(self)
