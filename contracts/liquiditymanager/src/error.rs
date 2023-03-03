@@ -20,4 +20,10 @@ pub enum ContractError {
 
     #[error("Assets Not Found")]
     AssetNotFound {},
+
+    #[error("Deposit Asset {val:?} Not Found")]
+    DepositAssetNotFound { val: String },
+
+    #[error("Insufficient Withdrawable Asset")]
+    InsufficientWithdrawableAsset {},
 }

@@ -55,3 +55,24 @@ pub fn inquiry_balance(
 
     Ok(result)
 }
+
+pub fn withdraw_balance(
+    storage: &mut dyn Storage,
+    _env: Env,
+    info: MessageInfo,
+    claim_asset: Coin,
+) -> Result<Coin, ContractError> {
+    let expected_key = (info.sender, claim_asset.denom.clone());
+    match BALANCE.may_load(storage, expected_key.clone())? {
+        Some(deposit_amount) => match deposit_amount.checked_sub(claim_asset.amount) {
+            Ok(claimed_amount) => {
+                BALANCE.save(storage, expected_key, &claimed_amount)?;
+                Ok(claim_asset)
+            }
+            Err(_) => Err(ContractError::InsufficientWithdrawableAsset {}),
+        },
+        None => Err(ContractError::DepositAssetNotFound {
+            val: claim_asset.denom,
+        }),
+    }
+}
