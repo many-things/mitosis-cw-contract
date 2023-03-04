@@ -29,13 +29,9 @@ pub fn deposit_balance(
     Ok(info.funds)
 }
 
-pub fn inquiry_balance(
-    storage: &mut dyn Storage,
-    _env: Env,
-    info: MessageInfo,
-) -> StdResult<Vec<Coin>> {
+pub fn inquiry_balance(storage: &dyn Storage, _env: Env, depositor: Addr) -> StdResult<Vec<Coin>> {
     let deposit_balances: Vec<Result<(String, Uint128), StdError>> = BALANCE
-        .prefix(info.sender)
+        .prefix(depositor)
         .range(storage, None, None, Order::Ascending)
         .collect::<Vec<_>>();
 
@@ -172,7 +168,6 @@ mod test {
         let depositor = Addr::unchecked(ADDR1_VALUE);
         let mut storage = MockStorage::new();
         let env = mock_env();
-        let info = mock_info(depositor.as_ref(), &[]);
 
         let osmo = coin(100000, "uosmo");
         let usdc = coin(200000, "uusdc");
@@ -182,9 +177,13 @@ mod test {
             (depositor.clone(), osmo.denom.clone()),
             &osmo.amount,
         );
-        let _ = BALANCE.save(&mut storage, (depositor, usdc.denom.clone()), &usdc.amount);
+        let _ = BALANCE.save(
+            &mut storage,
+            (depositor.clone(), usdc.denom.clone()),
+            &usdc.amount,
+        );
 
-        let result = inquiry_balance(&mut storage, env, info).unwrap();
+        let result = inquiry_balance(&mut storage, env, depositor).unwrap();
         assert_eq!(result, vec![osmo, usdc]);
     }
 

@@ -1,11 +1,11 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Reply, Response};
+use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
 use cw2::set_contract_version;
 
 use crate::{
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE,
-    msg::{ExecuteMsg, InstantiateMsg, MigrateMsg},
+    msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     state::OWNER,
     ContractError,
 };
@@ -56,5 +56,18 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, Contract
     match msg.id {
         REPLY_WITHDRAW_SUBMESSAGE_FAILURE => Ok(Response::new()),
         id => Err(ContractError::ReplyIdNotFound { id }),
+    }
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, ContractError> {
+    use crate::query;
+
+    match msg {
+        QueryMsg::ConfigQuery {} => query::config(deps, env),
+        QueryMsg::PauseInfoQuery {} => query::paused_info(deps, env),
+        QueryMsg::InquiryBalanceQuery { depositor } => {
+            query::inquiry_balance_query(deps, env, depositor)
+        }
     }
 }
