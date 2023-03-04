@@ -113,29 +113,130 @@ mod test {
 
         resume(deps.as_mut().storage, env.block.time.seconds());
 
-        let addr = Addr::unchecked(ADDR1);
-        let info = mock_info(addr.as_str(), &[]);
+        let sender = Addr::unchecked(ADDR1);
+        let withdrawer = Addr::unchecked(ADDR2);
+        let info = mock_info(sender.as_str(), &[]);
         let amount = coin(50000, DENOM.to_string());
 
         mock_balances(deps.as_mut().storage);
-        let resp = withdraw(deps.as_mut(), env, info, Some(addr.clone()), amount.clone()).unwrap();
+
+        // Test unspecified accounts wallet
+        let resp = withdraw(
+            deps.as_mut(),
+            env.clone(),
+            info.clone(),
+            None,
+            amount.clone(),
+        )
+        .unwrap();
 
         assert_eq!(
             resp.attributes,
             vec![
                 attr("action", "withdraw"),
-                attr("withdrawer", addr.to_string())
+                attr("withdrawer", sender.to_string())
             ]
         );
         assert_eq!(
             resp.messages,
             vec![SubMsg::reply_on_error(
                 BankMsg::Send {
-                    to_address: addr.to_string(),
+                    to_address: sender.to_string(),
+                    amount: vec![amount.clone(),]
+                },
+                REPLY_WITHDRAW_SUBMESSAGE_FAILURE
+            )]
+        );
+
+        // Test speicifed account wallet
+
+        let resp = withdraw(
+            deps.as_mut(),
+            env,
+            info,
+            Some(withdrawer.clone()),
+            amount.clone(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            resp.attributes,
+            vec![
+                attr("action", "withdraw"),
+                attr("withdrawer", withdrawer.to_string())
+            ]
+        );
+        assert_eq!(
+            resp.messages,
+            vec![SubMsg::reply_on_error(
+                BankMsg::Send {
+                    to_address: withdrawer.to_string(),
                     amount: vec![amount,]
                 },
                 REPLY_WITHDRAW_SUBMESSAGE_FAILURE
             )]
         );
+    }
+
+    #[test]
+    fn test_withdraw_not_exist_balance() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+
+        resume(deps.as_mut().storage, env.block.time.seconds());
+
+        let sender = Addr::unchecked(ADDR1);
+        let withdrawer = Addr::unchecked(ADDR2);
+        let info = mock_info(sender.as_str(), &[]);
+        let amount = coin(300000, DENOM.to_string());
+
+        let resp = withdraw(
+            deps.as_mut(),
+            env.clone(),
+            info.clone(),
+            None,
+            amount.clone(),
+        )
+        .unwrap_err();
+        assert!(matches!(resp, ContractError::DepositAssetNotFound { .. }));
+
+        let resp = withdraw(deps.as_mut(), env, info, Some(withdrawer), amount).unwrap_err();
+        assert!(matches!(resp, ContractError::DepositAssetNotFound { .. }));
+
+        mock_balances(deps.as_mut().storage);
+    }
+
+    #[test]
+    fn test_withdraw_insufficient_balance() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+
+        resume(deps.as_mut().storage, env.block.time.seconds());
+
+        let sender = Addr::unchecked(ADDR1);
+        let withdrawer = Addr::unchecked(ADDR2);
+        let info = mock_info(sender.as_str(), &[]);
+        let amount = coin(300000, DENOM.to_string());
+
+        mock_balances(deps.as_mut().storage);
+
+        let resp = withdraw(
+            deps.as_mut(),
+            env.clone(),
+            info.clone(),
+            None,
+            amount.clone(),
+        )
+        .unwrap_err();
+        assert!(matches!(
+            resp,
+            ContractError::InsufficientWithdrawableAsset { .. }
+        ));
+
+        let resp = withdraw(deps.as_mut(), env, info, Some(withdrawer), amount).unwrap_err();
+        assert!(matches!(
+            resp,
+            ContractError::InsufficientWithdrawableAsset { .. }
+        ));
     }
 }
