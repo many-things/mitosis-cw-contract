@@ -26,4 +26,7 @@ pub enum ContractError {
 
     #[error("Insufficient Withdrawable Asset")]
     InsufficientWithdrawableAsset {},
+
+    #[error("Reply Id not found: {id:?}")]
+    ReplyIdNotFound { id: u64 },
 }
