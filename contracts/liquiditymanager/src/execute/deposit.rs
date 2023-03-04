@@ -49,7 +49,6 @@ mod test {
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Storage,
     };
-    use schemars::_serde_json::de;
 
     use super::*;
 
