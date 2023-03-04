@@ -183,7 +183,7 @@ mod test {
             &usdc.amount,
         );
 
-        let result = inquiry_balance(&mut storage, env, depositor).unwrap();
+        let result = inquiry_balance(&storage, env, depositor).unwrap();
         assert_eq!(result, vec![osmo, usdc]);
     }
 

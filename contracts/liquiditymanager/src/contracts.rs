@@ -7,11 +7,8 @@ use crate::{
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE,
     msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     state::OWNER,
-    ContractError,
+    ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
-
-const CONTRACT_NAME: &str = "mitosis:liquiditymanager";
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
