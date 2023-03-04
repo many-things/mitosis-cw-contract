@@ -1,13 +1,22 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::{Addr, Coin};
 
 #[cw_serde]
 pub struct InstantiateMsg {}
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    Increment {},
-    Reset { count: i32 },
+    Deposit {
+        depositor: Option<Addr>,
+    },
+    Withdraw {
+        withdrawer: Option<Addr>,
+        amount: Coin,
+    },
 }
+
+#[cw_serde]
+pub enum MigrateMsg {}
 
 #[cw_serde]
 #[derive(QueryResponses)]

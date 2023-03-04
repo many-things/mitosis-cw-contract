@@ -10,14 +10,11 @@ pub fn deposit_balance(
     storage: &mut dyn Storage,
     _env: Env,
     info: MessageInfo,
+    depositor: Addr,
 ) -> Result<Vec<Coin>, ContractError> {
     // Save whole sended balances;
-    if info.funds.is_empty() {
-        return Err(ContractError::AssetNotFound {});
-    }
-
     for item in info.funds.iter() {
-        let key: (Addr, String) = (info.sender.clone(), item.denom.clone());
+        let key: (Addr, String) = (depositor.clone(), item.denom.clone());
         match BALANCE.may_load(storage, key.clone())? {
             Some(amount) => {
                 let new_amount = amount.checked_add(item.amount).unwrap();
