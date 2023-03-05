@@ -1,13 +1,11 @@
 pub mod denoms;
+pub mod rbac;
 
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Env, StdResult, Storage};
+use cosmwasm_std::{Env, StdResult, Storage};
 use cw_storage_plus::Item;
 
 use crate::error::ContractError;
-
-pub const OWNER_KEY: &str = "owner";
-pub const OWNER: Item<Addr> = Item::new(OWNER_KEY);
 
 pub const PAUSED_KEY: &str = "paused";
 pub const PAUSED: Item<PauseInfo> = Item::new(PAUSED_KEY);
@@ -17,16 +15,6 @@ pub const PAUSED: Item<PauseInfo> = Item::new(PAUSED_KEY);
 pub struct PauseInfo {
     pub paused: bool,
     pub expires_at: Option<u64>,
-}
-
-pub fn assert_owned(storage: &dyn Storage, sender: Addr) -> Result<(), ContractError> {
-    let owner = OWNER.load(storage)?;
-
-    if owner != sender {
-        return Err(ContractError::Unauthorized {});
-    }
-
-    Ok(())
 }
 
 impl PauseInfo {

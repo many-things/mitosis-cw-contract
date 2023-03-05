@@ -6,7 +6,7 @@ use cw2::set_contract_version;
 use crate::{
     error::ContractError,
     msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    state::OWNER,
+    state::rbac::OWNER,
     CONTRACT_NAME, CONTRACT_VERSION,
 };
 
