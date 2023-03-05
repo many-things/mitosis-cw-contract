@@ -20,4 +20,7 @@ pub enum ContractError {
 
     #[error("Reply Not Found: {id:?}")]
     ReplyIdNotFound { id: u64 },
+
+    #[error("Denom Not Found: {denom:?}")]
+    DenomNotFound { denom: String },
 }
