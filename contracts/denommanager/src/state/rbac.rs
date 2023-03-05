@@ -9,6 +9,10 @@ pub const OWNER: Item<Addr> = Item::new(OWNER_KEY);
 pub const ADDR_ROLE_KEY: &str = "roles";
 pub const ADDR_ROLE: Map<(String, Addr), bool> = Map::new(ADDR_ROLE_KEY);
 
+/** You might add ROLES here */
+pub const GATEWAY_ROLE: &str = "gateway_role";
+/** You might add ROLES here */
+
 pub fn assert_owned(storage: &dyn Storage, sender: Addr) -> Result<(), ContractError> {
     let owner = OWNER.load(storage)?;
 
@@ -27,6 +31,10 @@ pub fn assert_role(storage: &dyn Storage, role: String, addr: Addr) -> Result<()
         },
         None => Err(ContractError::RoleNotExist { addr, role }),
     }
+}
+
+pub fn change_owner(storage: &mut dyn Storage, new_owner: Addr) {
+    OWNER.save(storage, &new_owner);
 }
 
 pub fn grant_role(storage: &mut dyn Storage, role: String, addr: Addr) {
