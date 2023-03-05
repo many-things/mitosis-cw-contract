@@ -33,13 +33,15 @@ pub fn migrate(_deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response, C
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
-    _deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
+    use crate::execute::denoms;
+
     match msg {
-        ExecuteMsg::AddAlias { addr, denom } => todo!(),
+        ExecuteMsg::AddAlias { token, denom } => denoms::add_alias(deps, env, info, token, denom),
     }
 }
 

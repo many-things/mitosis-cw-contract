@@ -7,7 +7,7 @@ pub struct InstantiateMsg {}
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    AddAlias { addr: String, denom: String },
+    AddAlias { token: String, denom: String },
 }
 
 #[cw_serde]
