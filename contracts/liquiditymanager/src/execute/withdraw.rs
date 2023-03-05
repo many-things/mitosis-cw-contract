@@ -1,7 +1,7 @@
 use cosmwasm_std::{Addr, BankMsg, Coin, DepsMut, Env, MessageInfo, Response, SubMsg};
 
 use crate::{
-    state::{balances::withdraw_balance, PAUSED},
+    state::{assert_owned, balances::withdraw_balance, PAUSED},
     ContractError,
 };
 
@@ -18,6 +18,8 @@ pub fn withdraw(
         .load(deps.storage)?
         .refresh(deps.storage, &env)?
         .assert_not_paused()?;
+
+    assert_owned(deps.storage, info.sender.clone())?;
 
     let withdrawer = match withdrawer {
         Some(withdrawer) => withdrawer,
@@ -42,7 +44,7 @@ pub fn withdraw(
 
 #[cfg(test)]
 mod test {
-    use crate::state::{balances::BALANCE, PauseInfo, PAUSED};
+    use crate::state::{balances::BALANCE, PauseInfo, OWNER, PAUSED};
     use cosmwasm_std::{
         attr, coin,
         testing::{mock_dependencies, mock_env, mock_info},
@@ -91,10 +93,16 @@ mod test {
             .unwrap();
     }
 
+    fn mock_owner(storage: &mut dyn Storage, owner: Addr) {
+        OWNER.save(storage, &owner).unwrap();
+    }
+
     #[test]
     fn test_withdraw_paused() {
         let mut deps = mock_dependencies();
         let env = mock_env();
+
+        resume(deps.as_mut().storage, env.block.time.seconds());
 
         let addr = Addr::unchecked(ADDR1);
         let info = mock_info(addr.as_str(), &[]);
@@ -104,6 +112,33 @@ mod test {
         let response_error =
             withdraw(deps.as_mut(), env, info, Some(addr), coin(100000, "uosmo")).unwrap_err();
         assert!(matches!(response_error, ContractError::PausedError {}));
+    }
+
+    #[test]
+    fn test_ownership_unauthorized() {
+        let owner_addr = Addr::unchecked(ADDR1);
+        let abuser_addr = Addr::unchecked(ADDR2);
+
+        let mut deps = mock_dependencies();
+
+        let info = mock_info(abuser_addr.as_str(), &[]);
+        let env = mock_env();
+
+        resume(deps.as_mut().storage, env.block.time.seconds());
+        mock_owner(deps.as_mut().storage, owner_addr);
+
+        let try_withdraw = withdraw(
+            deps.as_mut(),
+            env,
+            info,
+            None,
+            coin(100000, DENOM.to_string()),
+        )
+        .unwrap_err();
+
+        println!("{}", try_withdraw);
+
+        assert!(matches!(try_withdraw, ContractError::Unauthorized {}));
     }
 
     #[test]
@@ -118,6 +153,7 @@ mod test {
         let info = mock_info(sender.as_str(), &[]);
         let amount = coin(50000, DENOM.to_string());
 
+        mock_owner(deps.as_mut().storage, sender.clone());
         mock_balances(deps.as_mut().storage);
 
         // Test unspecified accounts wallet
@@ -190,6 +226,7 @@ mod test {
         let info = mock_info(sender.as_str(), &[]);
         let amount = coin(300000, DENOM.to_string());
 
+        mock_owner(deps.as_mut().storage, sender.clone());
         let resp = withdraw(
             deps.as_mut(),
             env.clone(),
@@ -218,6 +255,7 @@ mod test {
         let info = mock_info(sender.as_str(), &[]);
         let amount = coin(300000, DENOM.to_string());
 
+        mock_owner(deps.as_mut().storage, sender.clone());
         mock_balances(deps.as_mut().storage);
 
         let resp = withdraw(

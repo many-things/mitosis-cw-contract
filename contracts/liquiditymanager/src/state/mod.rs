@@ -19,6 +19,16 @@ pub struct PauseInfo {
     pub expires_at: Option<u64>,
 }
 
+pub fn assert_owned(storage: &dyn Storage, sender: Addr) -> Result<(), ContractError> {
+    let owner = OWNER.load(storage)?;
+
+    if owner != sender {
+        return Err(ContractError::Unauthorized {});
+    }
+
+    Ok(())
+}
+
 impl PauseInfo {
     pub fn refresh(self, storage: &mut dyn Storage, env: &Env) -> StdResult<Self> {
         if self.paused {
