@@ -38,7 +38,9 @@ pub fn execute(
     _info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    match msg {}
+    match msg {
+        ExecuteMsg::AddAlias { addr, denom } => todo!(),
+    }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -48,6 +50,11 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, Contract
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(_deps: Deps, _env: Env, msg: QueryMsg) -> Result<QueryResponse, ContractError> {
-    match msg {}
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<QueryResponse, ContractError> {
+    use crate::query;
+
+    match msg {
+        QueryMsg::ConfigQuery {} => query::config_query(deps, _env),
+        QueryMsg::ConvertQuery { token } => query::convert_denoms_query(deps, _env, token),
+    }
 }
