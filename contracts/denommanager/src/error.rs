@@ -17,4 +17,7 @@ pub enum ContractError {
 
     #[error("Paused")]
     PausedError {},
+
+    #[error("Reply Not Found: {id:?}")]
+    ReplyIdNotFound { id: u64 },
 }
