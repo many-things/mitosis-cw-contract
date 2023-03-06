@@ -6,7 +6,7 @@ use cw2::set_contract_version;
 use crate::{
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE,
     msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    state::OWNER,
+    state::rbac::OWNER,
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -38,13 +38,16 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    use crate::execute::{deposit::deposit, withdraw::withdraw};
+    use crate::execute::{deposit::deposit, rbac, withdraw::withdraw};
 
     match msg {
         ExecuteMsg::Deposit { depositor } => deposit(deps, env, info, depositor),
         ExecuteMsg::Withdraw { withdrawer, amount } => {
             withdraw(deps, env, info, withdrawer, amount)
         }
+        ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
+        ExecuteMsg::GrantRole { role, addr } => rbac::grant_role(deps, env, info, role, addr),
+        ExecuteMsg::RevokeRole { role, addr } => rbac::revoke_role(deps, env, info, role, addr),
     }
 }
 

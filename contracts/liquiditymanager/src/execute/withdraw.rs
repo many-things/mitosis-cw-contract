@@ -1,7 +1,7 @@
 use cosmwasm_std::{Addr, BankMsg, Coin, DepsMut, Env, MessageInfo, Response, SubMsg};
 
 use crate::{
-    state::{assert_owned, balances::withdraw_balance, PAUSED},
+    state::{balances::withdraw_balance, rbac::assert_owned, PAUSED},
     ContractError,
 };
 
@@ -44,7 +44,7 @@ pub fn withdraw(
 
 #[cfg(test)]
 mod test {
-    use crate::state::{balances::BALANCE, PauseInfo, OWNER, PAUSED};
+    use crate::state::{balances::BALANCE, rbac::OWNER, PauseInfo, PAUSED};
     use cosmwasm_std::{
         attr, coin,
         testing::{mock_dependencies, mock_env, mock_info},

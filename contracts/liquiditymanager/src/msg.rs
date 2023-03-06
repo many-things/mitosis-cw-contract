@@ -15,6 +15,17 @@ pub enum ExecuteMsg {
         withdrawer: Option<Addr>,
         amount: Coin,
     },
+    ChangeOwner {
+        new_owner: Addr,
+    },
+    GrantRole {
+        role: String,
+        addr: Addr,
+    },
+    RevokeRole {
+        role: String,
+        addr: Addr,
+    },
 }
 
 #[cw_serde]

@@ -1,4 +1,4 @@
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Addr, StdError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -29,4 +29,7 @@ pub enum ContractError {
 
     #[error("Reply Id not found: {id:?}")]
     ReplyIdNotFound { id: u64 },
+
+    #[error("Role Error: Addr {addr:?} has not role {role:?}")]
+    RoleNotExist { addr: Addr, role: String },
 }
