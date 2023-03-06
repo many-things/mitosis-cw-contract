@@ -19,12 +19,12 @@ pub fn add_alias(
 
     assert_owned(deps.storage, info.sender)?;
 
-    let result = state::denoms::add_alias(deps.storage, token, alias)?;
+    let (token, alias) = state::denoms::add_alias(deps.storage, token, alias)?;
 
     let response = Response::new()
         .add_attribute("action", "add_alias")
-        .add_attribute("token", result.0)
-        .add_attribute("alias", result.1);
+        .add_attribute("token", token)
+        .add_attribute("alias", alias);
 
     Ok(response)
 }

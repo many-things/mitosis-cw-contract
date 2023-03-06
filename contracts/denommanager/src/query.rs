@@ -17,17 +17,13 @@ pub struct ConvertResponse {
     pub alias: String,
 }
 
-pub fn config_query(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError> {
+pub fn get_config(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError> {
     let owner = OWNER.load(deps.storage)?;
 
     Ok(to_binary(&ConfigResponse { owner })?)
 }
 
-pub fn convert_denoms_query(
-    deps: Deps,
-    _env: Env,
-    token: String,
-) -> Result<QueryResponse, ContractError> {
+pub fn get_convert(deps: Deps, _env: Env, token: String) -> Result<QueryResponse, ContractError> {
     let alias = convert_denoms(deps.storage, token.clone())?;
 
     Ok(to_binary(&ConvertResponse { token, alias })?)

@@ -59,7 +59,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<QueryResponse, Cont
     use crate::query;
 
     match msg {
-        QueryMsg::ConfigQuery {} => query::config_query(deps, _env),
-        QueryMsg::ConvertQuery { token } => query::convert_denoms_query(deps, _env, token),
+        QueryMsg::Config {} => query::get_config(deps, _env),
+        QueryMsg::Convert { token } => query::get_convert(deps, _env, token),
     }
 }
