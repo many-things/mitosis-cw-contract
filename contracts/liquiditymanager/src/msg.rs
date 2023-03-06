@@ -26,6 +26,10 @@ pub enum ExecuteMsg {
         role: String,
         addr: Addr,
     },
+    Pause {
+        expires_at: u64,
+    },
+    Release {},
 }
 
 #[cw_serde]

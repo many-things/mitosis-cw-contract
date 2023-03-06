@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Attribute, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{attr, Addr, Attribute, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     state::{balances::deposit_balance, PAUSED},
@@ -25,7 +25,7 @@ pub fn deposit(
         None => info.sender.clone(),
     };
 
-    let deposit_result = deposit_balance(deps.storage, env, info, depositor.clone())?;
+    let deposit_result = deposit_balance(deps.storage, env, info.clone(), depositor.clone())?;
     let deposit_attributes = deposit_result
         .iter()
         .map(|x| Attribute {
@@ -35,9 +35,13 @@ pub fn deposit(
         .collect::<Vec<_>>();
 
     let response = Response::new()
-        .add_attribute("action", "deposit")
-        .add_attribute("depositor", depositor)
+        .add_attributes(vec![
+            attr("action", "deposit"),
+            attr("executor", info.sender),
+            attr("depositor", depositor),
+        ])
         .add_attributes(deposit_attributes);
+
     Ok(response)
 }
 
@@ -111,6 +115,7 @@ mod test {
             response.attributes,
             vec![
                 attr("action", "deposit"),
+                attr("executor", addr.to_string()),
                 attr("depositor", addr.to_string()),
                 attr("uosmo", "100000"),
                 attr("uusdc", "200000"),
@@ -137,6 +142,7 @@ mod test {
             response.attributes,
             vec![
                 attr("action", "deposit"),
+                attr("executor", sender.to_string()),
                 attr("depositor", depositor.to_string()),
                 attr("uosmo", "100000"),
                 attr("uusdc", "200000"),

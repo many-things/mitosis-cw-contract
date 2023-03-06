@@ -6,7 +6,7 @@ use cw2::set_contract_version;
 use crate::{
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE,
     msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    state::rbac::OWNER,
+    state::{rbac::OWNER, PAUSED},
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -20,6 +20,7 @@ pub fn instantiate(
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     OWNER.save(deps.storage, &info.sender)?;
+    PAUSED.save(deps.storage, &Default::default())?;
 
     Ok(Response::new()
         .add_attribute("method", "instantiate")
@@ -38,7 +39,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    use crate::execute::{deposit::deposit, rbac, withdraw::withdraw};
+    use crate::execute::{deposit::deposit, gov, rbac, withdraw::withdraw};
 
     match msg {
         ExecuteMsg::Deposit { depositor } => deposit(deps, env, info, depositor),
@@ -48,6 +49,8 @@ pub fn execute(
         ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
         ExecuteMsg::GrantRole { role, addr } => rbac::grant_role(deps, env, info, role, addr),
         ExecuteMsg::RevokeRole { role, addr } => rbac::revoke_role(deps, env, info, role, addr),
+        ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
+        ExecuteMsg::Release {} => gov::release(deps, env, info),
     }
 }
 

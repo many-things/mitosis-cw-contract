@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, BankMsg, Coin, DepsMut, Env, MessageInfo, Response, SubMsg};
+use cosmwasm_std::{attr, Addr, BankMsg, Coin, DepsMut, Env, MessageInfo, Response, SubMsg};
 
 use crate::{
     state::{balances::withdraw_balance, rbac::assert_owned, PAUSED},
@@ -26,7 +26,8 @@ pub fn withdraw(
         None => info.sender.clone(),
     };
 
-    let withdraw_result = withdraw_balance(deps.storage, env, info, withdrawer.clone(), amount)?;
+    let withdraw_result =
+        withdraw_balance(deps.storage, env, info.clone(), withdrawer.clone(), amount)?;
 
     let withdraw_message = BankMsg::Send {
         to_address: withdrawer.to_string(),
@@ -37,8 +38,11 @@ pub fn withdraw(
 
     let response = Response::new()
         .add_submessage(withdraw_submessage)
-        .add_attribute("action", "withdraw")
-        .add_attribute("withdrawer", withdrawer);
+        .add_attributes(vec![
+            attr("action", "withdraw"),
+            attr("executor", info.sender),
+            attr("withdrawer", withdrawer),
+        ]);
     Ok(response)
 }
 
@@ -170,6 +174,7 @@ mod test {
             resp.attributes,
             vec![
                 attr("action", "withdraw"),
+                attr("executor", sender.to_string()),
                 attr("withdrawer", sender.to_string())
             ]
         );
@@ -199,6 +204,7 @@ mod test {
             resp.attributes,
             vec![
                 attr("action", "withdraw"),
+                attr("executor", sender.to_string()),
                 attr("withdrawer", withdrawer.to_string())
             ]
         );

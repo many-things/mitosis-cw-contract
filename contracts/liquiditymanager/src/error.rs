@@ -9,9 +9,6 @@ pub enum ContractError {
     #[error("Unauthorized")]
     Unauthorized {},
 
-    #[error("Custom Error val: {val:?}")]
-    CustomError { val: String },
-
     #[error("Not paused")]
     NotPausedError {},
 
@@ -32,4 +29,7 @@ pub enum ContractError {
 
     #[error("Role Error: Addr {addr:?} has not role {role:?}")]
     RoleNotExist { addr: Addr, role: String },
+
+    #[error("{msg:?}")]
+    InvalidArgument { msg: String },
 }
