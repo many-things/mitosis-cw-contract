@@ -12,6 +12,8 @@ pub enum ExecuteMsg {
     ChangeOwner { new_owner: Addr },
     GrantRole { role: String, addr: Addr },
     RevokeRole { role: String, addr: Addr },
+    Pause { expires_at: u64 },
+    Release {},
 }
 
 #[cw_serde]
