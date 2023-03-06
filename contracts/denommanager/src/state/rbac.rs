@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Storage};
+use cosmwasm_std::{Addr, StdError, Storage};
 use cw_storage_plus::{Item, Map};
 
 use crate::error::ContractError;
@@ -33,16 +33,31 @@ pub fn assert_role(storage: &dyn Storage, role: String, addr: Addr) -> Result<()
     }
 }
 
-pub fn change_owner(storage: &mut dyn Storage, new_owner: Addr) {
-    OWNER.save(storage, &new_owner);
+pub fn change_owner(storage: &mut dyn Storage, new_owner: Addr) -> Result<(), ContractError> {
+    OWNER.save(storage, &new_owner)?;
+
+    Ok(())
 }
 
-pub fn grant_role(storage: &mut dyn Storage, role: String, addr: Addr) {
-    ADDR_ROLE.save(storage, (role, addr), &true).unwrap();
+pub fn grant_role(
+    storage: &mut dyn Storage,
+    role: String,
+    addr: Addr,
+) -> Result<(String, Addr), ContractError> {
+    ADDR_ROLE
+        .save(storage, (role.clone(), addr.clone()), &true)
+        .unwrap();
+
+    Ok((role, addr))
 }
 
-pub fn revoke_role(storage: &mut dyn Storage, role: String, addr: Addr) {
+pub fn revoke_role(
+    storage: &mut dyn Storage,
+    role: String,
+    addr: Addr,
+) -> Result<(String, Addr), StdError> {
     assert_role(storage, role.clone(), addr.clone()).unwrap();
 
-    ADDR_ROLE.remove(storage, (role, addr));
+    ADDR_ROLE.remove(storage, (role.clone(), addr.clone()));
+    Ok((role, addr))
 }
