@@ -40,11 +40,11 @@ pub enum MigrateMsg {}
 pub enum QueryMsg {
     // GetCount returns the current count as a json-encoded number
     #[returns(ConfigResponse)]
-    ConfigQuery {},
+    Config {},
 
     #[returns(PauseInfoResponse)]
-    PauseInfoQuery {},
+    PauseInfo {},
 
     #[returns(GetBalanceResponse)]
-    GetBalanceQuery { depositor: Addr },
+    GetBalance { depositor: Addr },
 }
