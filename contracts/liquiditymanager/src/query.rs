@@ -18,18 +18,18 @@ pub struct PauseInfoResponse {
 }
 
 #[cw_serde]
-pub struct InquiryBalanceResponse {
+pub struct GetBalanceResponse {
     pub depositor: Addr,
     pub assets: Vec<Coin>,
 }
 
-pub fn config(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError> {
+pub fn get_config(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError> {
     let owner = OWNER.load(deps.storage)?;
 
     Ok(to_binary(&ConfigResponse { owner })?)
 }
 
-pub fn paused_info(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError> {
+pub fn get_paused_info(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError> {
     let pause = PAUSED.load(deps.storage)?;
 
     Ok(to_binary(&PauseInfoResponse {
@@ -38,14 +38,10 @@ pub fn paused_info(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError
     })?)
 }
 
-pub fn inquiry_balance_query(
-    deps: Deps,
-    env: Env,
-    depositor: Addr,
-) -> Result<QueryResponse, ContractError> {
+pub fn get_balance(deps: Deps, env: Env, depositor: Addr) -> Result<QueryResponse, ContractError> {
     let result = inquiry_balance(deps.storage, env, depositor.clone())?;
 
-    Ok(to_binary(&InquiryBalanceResponse {
+    Ok(to_binary(&GetBalanceResponse {
         depositor,
         assets: result,
     })?)

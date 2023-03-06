@@ -1,7 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Coin};
 
-use crate::query::{ConfigResponse, InquiryBalanceResponse, PauseInfoResponse};
+use crate::query::{ConfigResponse, GetBalanceResponse, PauseInfoResponse};
 
 #[cw_serde]
 pub struct InstantiateMsg {}
@@ -45,6 +45,6 @@ pub enum QueryMsg {
     #[returns(PauseInfoResponse)]
     PauseInfoQuery {},
 
-    #[returns(InquiryBalanceResponse)]
-    InquiryBalanceQuery { depositor: Addr },
+    #[returns(GetBalanceResponse)]
+    GetBalanceQuery { depositor: Addr },
 }

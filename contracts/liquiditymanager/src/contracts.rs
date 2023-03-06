@@ -67,10 +67,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
     use crate::query;
 
     match msg {
-        QueryMsg::ConfigQuery {} => query::config(deps, env),
-        QueryMsg::PauseInfoQuery {} => query::paused_info(deps, env),
-        QueryMsg::InquiryBalanceQuery { depositor } => {
-            query::inquiry_balance_query(deps, env, depositor)
-        }
+        QueryMsg::ConfigQuery {} => query::get_config(deps, env),
+        QueryMsg::PauseInfoQuery {} => query::get_paused_info(deps, env),
+        QueryMsg::GetBalanceQuery { depositor } => query::get_balance(deps, env, depositor),
     }
 }

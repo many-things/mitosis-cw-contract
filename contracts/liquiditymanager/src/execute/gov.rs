@@ -11,12 +11,12 @@ pub fn pause(
     info: MessageInfo,
     expires_at: u64,
 ) -> Result<Response, ContractError> {
+    assert_owned(deps.storage, info.sender.clone())?;
+
     let mut pause_info = PAUSED
         .load(deps.storage)?
         .refresh(deps.storage, &env)?
         .assert_not_paused()?;
-
-    assert_owned(deps.storage, info.sender.clone())?;
 
     if env.block.time.seconds() >= expires_at {
         return Err(ContractError::InvalidArgument {
@@ -39,12 +39,12 @@ pub fn pause(
 }
 
 pub fn release(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+    assert_owned(deps.storage, info.sender.clone())?;
+
     PAUSED
         .load(deps.storage)?
         .refresh(deps.storage, &env)?
         .assert_paused()?;
-
-    assert_owned(deps.storage, info.sender.clone())?;
 
     PAUSED.save(deps.storage, &Default::default())?;
 
@@ -86,23 +86,10 @@ mod test {
         let abuser = Addr::unchecked(ADDR2);
 
         mock_owner(deps.as_mut().storage, owner);
-        PAUSED
-            .save(deps.as_mut().storage, &Default::default())
-            .unwrap();
         let info = mock_info(abuser.as_str(), &[]);
 
         let unauth_pause = pause(deps.as_mut(), env.clone(), info.clone(), 0).unwrap_err();
         assert!(matches!(unauth_pause, ContractError::Unauthorized {}));
-
-        PAUSED
-            .save(
-                deps.as_mut().storage,
-                &PauseInfo {
-                    paused: true,
-                    expires_at: Some(env.block.time.seconds() + 1),
-                },
-            )
-            .unwrap();
 
         let unauth_release = release(deps.as_mut(), env, info).unwrap_err();
         assert!(matches!(unauth_release, ContractError::Unauthorized {}));
