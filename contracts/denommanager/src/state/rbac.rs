@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, StdError, Storage};
+use cosmwasm_std::{Addr, Storage};
 use cw_storage_plus::{Item, Map};
 
 use crate::error::ContractError;
@@ -55,8 +55,8 @@ pub fn revoke_role(
     storage: &mut dyn Storage,
     role: String,
     addr: Addr,
-) -> Result<(String, Addr), StdError> {
-    assert_role(storage, role.clone(), addr.clone()).unwrap();
+) -> Result<(String, Addr), ContractError> {
+    assert_role(storage, role.clone(), addr.clone())?;
 
     ADDR_ROLE.remove(storage, (role.clone(), addr.clone()));
     Ok((role, addr))
