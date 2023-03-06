@@ -1,5 +1,5 @@
 [package]
-name = "denommanager"
+name = "denom-manager"
 version = "0.1.0"
 authors = ["Eric <hashableric@gmail.com>"]
 edition = "2021"
