@@ -38,10 +38,13 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    use crate::execute::denoms;
+    use crate::execute::{denoms, rbac};
 
     match msg {
         ExecuteMsg::AddAlias { token, denom } => denoms::add_alias(deps, env, info, token, denom),
+        ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
+        ExecuteMsg::GrantRole { role, addr } => rbac::grant_role(deps, env, info, role, addr),
+        ExecuteMsg::RevokeRole { role, addr } => rbac::revoke_role(deps, env, info, role, addr),
     }
 }
 
