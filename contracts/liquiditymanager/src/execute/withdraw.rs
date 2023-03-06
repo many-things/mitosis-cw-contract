@@ -226,7 +226,7 @@ mod test {
         let info = mock_info(sender.as_str(), &[]);
         let amount = coin(300000, DENOM.to_string());
 
-        mock_owner(deps.as_mut().storage, sender.clone());
+        mock_owner(deps.as_mut().storage, sender);
         let resp = withdraw(
             deps.as_mut(),
             env.clone(),
@@ -255,7 +255,7 @@ mod test {
         let info = mock_info(sender.as_str(), &[]);
         let amount = coin(300000, DENOM.to_string());
 
-        mock_owner(deps.as_mut().storage, sender.clone());
+        mock_owner(deps.as_mut().storage, sender);
         mock_balances(deps.as_mut().storage);
 
         let resp = withdraw(
