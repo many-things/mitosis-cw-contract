@@ -1,11 +1,9 @@
-use cosmwasm_std::{attr, Addr, BankMsg, Coin, DepsMut, Env, MessageInfo, Response, SubMsg};
+use cosmwasm_std::{attr, Addr, BankMsg, Coin, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     state::{balances::withdraw_balance, rbac::assert_owned, PAUSED},
     ContractError,
 };
-
-use super::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE;
 
 pub fn withdraw(
     deps: DepsMut,
@@ -33,11 +31,9 @@ pub fn withdraw(
         to_address: withdrawer.to_string(),
         amount: vec![withdraw_result],
     };
-    let withdraw_submessage =
-        SubMsg::reply_on_error(withdraw_message, REPLY_WITHDRAW_SUBMESSAGE_FAILURE);
 
     let response = Response::new()
-        .add_submessage(withdraw_submessage)
+        .add_message(withdraw_message)
         .add_attributes(vec![
             attr("action", "withdraw"),
             attr("executor", info.sender),
@@ -52,7 +48,7 @@ mod test {
     use cosmwasm_std::{
         attr, coin,
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Storage, Uint128,
+        Addr, Storage, SubMsg, Uint128,
     };
 
     use super::*;
@@ -180,13 +176,10 @@ mod test {
         );
         assert_eq!(
             resp.messages,
-            vec![SubMsg::reply_on_error(
-                BankMsg::Send {
-                    to_address: sender.to_string(),
-                    amount: vec![amount.clone(),]
-                },
-                REPLY_WITHDRAW_SUBMESSAGE_FAILURE
-            )]
+            vec![SubMsg::new(BankMsg::Send {
+                to_address: sender.to_string(),
+                amount: vec![amount.clone(),]
+            })]
         );
 
         // Test speicifed account wallet
@@ -210,13 +203,10 @@ mod test {
         );
         assert_eq!(
             resp.messages,
-            vec![SubMsg::reply_on_error(
-                BankMsg::Send {
-                    to_address: withdrawer.to_string(),
-                    amount: vec![amount,]
-                },
-                REPLY_WITHDRAW_SUBMESSAGE_FAILURE
-            )]
+            vec![SubMsg::new(BankMsg::Send {
+                to_address: withdrawer.to_string(),
+                amount: vec![amount,]
+            })]
         );
     }
 
