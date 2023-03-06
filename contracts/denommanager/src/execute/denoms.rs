@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{attr, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     error::ContractError,
@@ -17,14 +17,16 @@ pub fn add_alias(
         .refresh(deps.storage, &env)?
         .assert_not_paused()?;
 
-    assert_owned(deps.storage, info.sender)?;
+    assert_owned(deps.storage, info.sender.clone())?;
 
     let (token, alias) = state::denoms::add_alias(deps.storage, token, alias)?;
 
-    let response = Response::new()
-        .add_attribute("action", "add_alias")
-        .add_attribute("token", token)
-        .add_attribute("alias", alias);
+    let response = Response::new().add_attributes(vec![
+        attr("action", "add_alias"),
+        attr("executor", info.sender),
+        attr("token", token),
+        attr("alias", alias),
+    ]);
 
     Ok(response)
 }
@@ -114,7 +116,7 @@ mod test {
         let info = mock_info(owner.as_str(), &[]);
 
         resume(deps.as_mut().storage, env.block.time.seconds());
-        mock_owner(deps.as_mut().storage, owner);
+        mock_owner(deps.as_mut().storage, owner.clone());
 
         let token = "token".to_string();
         let alias = "alias".to_string();
@@ -123,6 +125,7 @@ mod test {
             response.attributes,
             vec![
                 attr("action", "add_alias"),
+                attr("executor", owner),
                 attr("token", token),
                 attr("alias", alias),
             ]

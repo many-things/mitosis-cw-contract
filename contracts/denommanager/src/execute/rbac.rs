@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{attr, Addr, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     error::ContractError,
@@ -16,13 +16,15 @@ pub fn change_owner(
         .refresh(deps.storage, &env)?
         .assert_not_paused()?;
 
-    rbac::assert_owned(deps.storage, info.sender)?;
+    rbac::assert_owned(deps.storage, info.sender.clone())?;
 
     rbac::change_owner(deps.storage, new_owner.clone())?;
 
-    let response = Response::new()
-        .add_attribute("action", "change_owner")
-        .add_attribute("new_owner", new_owner);
+    let response = Response::new().add_attributes(vec![
+        attr("action", "change_owner"),
+        attr("executor", info.sender),
+        attr("new_owner", new_owner),
+    ]);
 
     Ok(response)
 }
@@ -39,14 +41,16 @@ pub fn grant_role(
         .refresh(deps.storage, &env)?
         .assert_not_paused()?;
 
-    rbac::assert_owned(deps.storage, info.sender)?;
+    rbac::assert_owned(deps.storage, info.sender.clone())?;
 
-    let result = rbac::grant_role(deps.storage, role, approval_addr)?;
+    let (role, addr) = rbac::grant_role(deps.storage, role, approval_addr)?;
 
-    let response = Response::new()
-        .add_attribute("action", "grant_role")
-        .add_attribute("role", result.0)
-        .add_attribute("addr", result.1);
+    let response = Response::new().add_attributes(vec![
+        attr("action", "grant_role"),
+        attr("executor", info.sender),
+        attr("role", role),
+        attr("addr", addr),
+    ]);
 
     Ok(response)
 }
@@ -63,14 +67,16 @@ pub fn revoke_role(
         .refresh(deps.storage, &env)?
         .assert_not_paused()?;
 
-    rbac::assert_owned(deps.storage, info.sender)?;
+    rbac::assert_owned(deps.storage, info.sender.clone())?;
 
-    let result = rbac::revoke_role(deps.storage, role, revoked_addr)?;
+    let (role, addr) = rbac::revoke_role(deps.storage, role, revoked_addr)?;
 
-    let response = Response::new()
-        .add_attribute("action", "revoke_role")
-        .add_attribute("role", result.0)
-        .add_attribute("addr", result.1);
+    let response = Response::new().add_attributes(vec![
+        attr("action", "revoke_role"),
+        attr("executor", info.sender),
+        attr("role", role),
+        attr("addr", addr),
+    ]);
 
     Ok(response)
 }
@@ -175,13 +181,14 @@ mod test {
         let info = mock_info(owner.as_str(), &[]);
 
         resume(deps.as_mut().storage, env.block.time.seconds());
-        mock_owner(deps.as_mut().storage, owner);
+        mock_owner(deps.as_mut().storage, owner.clone());
 
         let changed_owner = change_owner(deps.as_mut(), env, info, new_owner.clone()).unwrap();
         assert_eq!(
             changed_owner.attributes,
             vec![
                 attr("action", "change_owner"),
+                attr("executor", owner),
                 attr("new_owner", new_owner.as_str())
             ]
         );
@@ -253,7 +260,7 @@ mod test {
         let role = GATEWAY_ROLE.to_string();
 
         resume(deps.as_mut().storage, env.block.time.seconds());
-        mock_owner(deps.as_mut().storage, owner);
+        mock_owner(deps.as_mut().storage, owner.clone());
 
         let response = grant_role(
             deps.as_mut(),
@@ -267,6 +274,7 @@ mod test {
             response.attributes,
             vec![
                 attr("action", "grant_role"),
+                attr("executor", owner),
                 attr("role", role),
                 attr("addr", approval_addr.to_string())
             ]
@@ -284,7 +292,7 @@ mod test {
         let role = GATEWAY_ROLE.to_string();
 
         resume(deps.as_mut().storage, env.block.time.seconds());
-        mock_owner(deps.as_mut().storage, owner);
+        mock_owner(deps.as_mut().storage, owner.clone());
 
         ADDR_ROLE
             .save(
@@ -300,6 +308,7 @@ mod test {
             response.attributes,
             vec![
                 attr("action", "revoke_role"),
+                attr("executor", owner),
                 attr("role", role),
                 attr("addr", revoke_addr.to_string())
             ]
