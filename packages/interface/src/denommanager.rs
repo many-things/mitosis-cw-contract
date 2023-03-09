@@ -1,8 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Addr;
 
-use crate::query::{ConfigResponse, ConvertResponse};
-
 #[cw_serde]
 pub struct InstantiateMsg {}
 
@@ -27,4 +25,15 @@ pub enum QueryMsg {
 
     #[returns(ConvertResponse)]
     Convert { token: String },
+}
+
+#[cw_serde]
+pub struct ConfigResponse {
+    pub owner: Addr,
+}
+
+#[cw_serde]
+pub struct ConvertResponse {
+    pub token: String,
+    pub alias: String,
 }

@@ -2,13 +2,9 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
 use cw2::set_contract_version;
+use mitosis_interface::denommanager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
-use crate::{
-    error::ContractError,
-    msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    state::rbac::OWNER,
-    CONTRACT_NAME, CONTRACT_VERSION,
-};
+use crate::{error::ContractError, state::rbac::OWNER, CONTRACT_NAME, CONTRACT_VERSION};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
