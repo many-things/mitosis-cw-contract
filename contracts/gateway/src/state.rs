@@ -10,6 +10,12 @@ pub const OWNER: Item<Addr> = Item::new(OWNER_KEY);
 pub const PAUSED_KEY: &str = "paused";
 pub const PAUSED: Item<PauseInfo> = Item::new(PAUSED_KEY);
 
+pub const LIQUIDITY_MANAGER_KEY: &str = "liquidity_manager";
+pub const LIQUIDITY_MANAGER: Item<Addr> = Item::new(LIQUIDITY_MANAGER_KEY);
+
+pub const DENOM_MANAGER_KEY: &str = "denom_manager";
+pub const DENOM_MANAGER: Item<Addr> = Item::new(DENOM_MANAGER_KEY);
+
 #[cw_serde]
 #[derive(Default)]
 pub struct PauseInfo {

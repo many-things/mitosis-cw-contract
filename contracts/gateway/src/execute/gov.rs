@@ -1,8 +1,8 @@
 use cosmwasm_std::{attr, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
-    state::{rbac::assert_owned, PAUSED},
-    ContractError,
+    errors::ContractError,
+    state::{assert_owned, PAUSED},
 };
 
 pub fn pause(
@@ -63,10 +63,7 @@ mod test {
         Addr, Storage,
     };
 
-    use crate::{
-        state::{rbac::OWNER, PauseInfo, PAUSED},
-        ContractError,
-    };
+    use crate::state::{PauseInfo, OWNER, PAUSED};
 
     use super::*;
 

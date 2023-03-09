@@ -1,8 +1,8 @@
 use cosmwasm_std::{attr, Addr, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
-    error::ContractError,
-    state::{rbac, PAUSED},
+    errors::ContractError,
+    state::{assert_owned, OWNER, PAUSED},
 };
 
 pub fn change_owner(
@@ -16,8 +16,8 @@ pub fn change_owner(
         .refresh(deps.storage, &env)?
         .assert_not_paused()?;
 
-    rbac::assert_owned(deps.storage, info.sender.clone())?;
-    rbac::change_owner(deps.storage, new_owner.clone())?;
+    assert_owned(deps.storage, info.sender.clone())?;
+    OWNER.save(deps.storage, &new_owner)?;
 
     let response = Response::new().add_attributes(vec![
         attr("action", "change_owner"),
@@ -36,10 +36,7 @@ mod test {
         Addr, Storage,
     };
 
-    use crate::state::{
-        rbac::{ADDR_ROLE, GATEWAY_ROLE, OWNER},
-        PauseInfo,
-    };
+    use crate::state::PauseInfo;
 
     use super::*;
     const ADDR1: &str = "addr1";
@@ -80,26 +77,11 @@ mod test {
 
         let addr = Addr::unchecked(ADDR1);
         let info = mock_info(addr.as_str(), &[]);
-        let role = GATEWAY_ROLE.to_string();
 
         stop(deps.as_mut().storage, env.block.time.seconds());
 
-        let change_owner_err =
-            change_owner(deps.as_mut(), env.clone(), info.clone(), addr.clone()).unwrap_err();
+        let change_owner_err = change_owner(deps.as_mut(), env, info, addr).unwrap_err();
         assert!(matches!(change_owner_err, ContractError::PausedError {}));
-
-        let grant_role_err = grant_role(
-            deps.as_mut(),
-            env.clone(),
-            info.clone(),
-            role.clone(),
-            addr.clone(),
-        )
-        .unwrap_err();
-        assert!(matches!(grant_role_err, ContractError::PausedError {}));
-
-        let revoke_role_err = revoke_role(deps.as_mut(), env, info, role, addr).unwrap_err();
-        assert!(matches!(revoke_role_err, ContractError::PausedError {}));
     }
 
     #[test]
