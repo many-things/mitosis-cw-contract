@@ -1,4 +1,4 @@
-use cosmwasm_std::{attr, to_binary, Addr, Attribute, Deps, Env, MessageInfo, Response, WasmMsg};
+use cosmwasm_std::{attr, to_binary, Addr, Deps, Env, MessageInfo, Response, WasmMsg};
 use mitosis_interface::liquidity_manager;
 
 use crate::{errors::ContractError, state::LIQUIDITY_MANAGER};
@@ -23,14 +23,7 @@ pub fn send(
     };
 
     let lmgr = LIQUIDITY_MANAGER.load(deps.storage)?;
-    let deposit_attributes = info
-        .funds
-        .iter()
-        .map(|x| Attribute {
-            key: x.denom.to_string(),
-            value: x.amount.to_string(),
-        })
-        .collect::<Vec<_>>();
+    let deposit_attributes = serde_json::to_string(&info.funds).unwrap();
 
     let resp = Response::new()
         .add_message(WasmMsg::Execute {
@@ -38,9 +31,11 @@ pub fn send(
             msg: to_binary(&msg)?,
             funds: info.funds,
         })
-        .add_attributes(vec![attr("action", "send"), attr("executor", info.sender)])
-        .add_attributes(deposit_attributes);
-
+        .add_attributes(vec![
+            attr("action", "send"),
+            attr("executor", info.sender),
+            attr("assets", deposit_attributes),
+        ]);
     Ok(resp)
 }
 
@@ -87,7 +82,7 @@ mod test {
             vec![
                 attr("action", "send"),
                 attr("executor", addr.clone()),
-                attr("uosmo", "200000"),
+                attr("assets", serde_json::to_string(&info.funds).unwrap())
             ]
         );
 
@@ -124,7 +119,7 @@ mod test {
             vec![
                 attr("action", "send"),
                 attr("executor", sender),
-                attr("uosmo", "200000"),
+                attr("assets", serde_json::to_string(&info.funds).unwrap())
             ]
         );
 
@@ -163,8 +158,7 @@ mod test {
             vec![
                 attr("action", "send"),
                 attr("executor", sender.clone()),
-                attr("uosmo", "200000"),
-                attr("uusdc", "100000"),
+                attr("assets", serde_json::to_string(&info.funds).unwrap())
             ]
         );
 
@@ -204,8 +198,7 @@ mod test {
             vec![
                 attr("action", "send"),
                 attr("executor", sender),
-                attr("uosmo", "200000"),
-                attr("uusdc", "100000"),
+                attr("assets", serde_json::to_string(&info.funds).unwrap())
             ]
         );
 
