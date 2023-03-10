@@ -1,4 +1,4 @@
-use cosmwasm_std::{attr, Addr, Attribute, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{attr, Addr, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     state::{balances::deposit_balance, PAUSED},
@@ -26,22 +26,14 @@ pub fn deposit(
     };
 
     let deposit_result = deposit_balance(deps.storage, env, info.clone(), depositor.clone())?;
-    let deposit_attributes = deposit_result
-        .iter()
-        .map(|x| Attribute {
-            key: x.denom.to_string(),
-            value: x.amount.to_string(),
-        })
-        .collect::<Vec<_>>();
+    let deposit_attributes = serde_json::to_string(&deposit_result).unwrap();
 
-    let response = Response::new()
-        .add_attributes(vec![
-            attr("action", "deposit"),
-            attr("executor", info.sender),
-            attr("depositor", depositor),
-        ])
-        .add_attributes(deposit_attributes);
-
+    let response = Response::new().add_attributes(vec![
+        attr("action", "deposit"),
+        attr("executor", info.sender),
+        attr("depositor", depositor),
+        attr("assets", deposit_attributes),
+    ]);
     Ok(response)
 }
 
@@ -110,15 +102,14 @@ mod test {
 
         resume(deps.as_mut().storage, env.block.time.seconds());
 
-        let response = deposit(deps.as_mut(), env, info, Some(addr.clone())).unwrap();
+        let response = deposit(deps.as_mut(), env, info.clone(), Some(addr.clone())).unwrap();
         assert_eq!(
             response.attributes,
             vec![
                 attr("action", "deposit"),
                 attr("executor", addr.to_string()),
                 attr("depositor", addr.to_string()),
-                attr("uosmo", "100000"),
-                attr("uusdc", "200000"),
+                attr("assets", serde_json::to_string(&info.funds).unwrap()),
             ]
         )
     }
@@ -137,15 +128,14 @@ mod test {
 
         resume(deps.as_mut().storage, env.block.time.seconds());
 
-        let response = deposit(deps.as_mut(), env, info, Some(depositor.clone())).unwrap();
+        let response = deposit(deps.as_mut(), env, info.clone(), Some(depositor.clone())).unwrap();
         assert_eq!(
             response.attributes,
             vec![
                 attr("action", "deposit"),
                 attr("executor", sender.to_string()),
                 attr("depositor", depositor.to_string()),
-                attr("uosmo", "100000"),
-                attr("uusdc", "200000"),
+                attr("assets", serde_json::to_string(&info.funds).unwrap()),
             ]
         )
     }

@@ -2,13 +2,9 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
 use cw2::set_contract_version;
+use mitosis_interface::denom_manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
-use crate::{
-    error::ContractError,
-    msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    state::rbac::OWNER,
-    CONTRACT_NAME, CONTRACT_VERSION,
-};
+use crate::{error::ContractError, state::rbac::OWNER, CONTRACT_NAME, CONTRACT_VERSION};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -27,8 +23,8 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
-    match msg {}
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -61,7 +57,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<QueryResponse, Cont
     use crate::query;
 
     match msg {
-        QueryMsg::Config {} => query::get_config(deps, _env),
+        QueryMsg::GetConfig {} => query::get_config(deps, _env),
         QueryMsg::Convert { token } => query::get_convert(deps, _env, token),
     }
 }

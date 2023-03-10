@@ -2,10 +2,10 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
 use cw2::set_contract_version;
+use mitosis_interface::liquidity_manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 use crate::{
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE,
-    msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     state::{rbac::OWNER, PAUSED},
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
@@ -28,8 +28,8 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
-    match msg {}
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -67,7 +67,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
     use crate::query;
 
     match msg {
-        QueryMsg::Config {} => query::get_config(deps, env),
+        QueryMsg::GetConfig {} => query::get_config(deps, env),
         QueryMsg::PauseInfo {} => query::get_paused_info(deps, env),
         QueryMsg::GetBalance { depositor } => query::get_balance(deps, env, depositor),
     }

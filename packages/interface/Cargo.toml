@@ -1,5 +1,5 @@
 [package]
-name = "denom-manager"
+name = "mitosis-interface"
 version = "0.1.0"
 authors = ["Eric <hashableric@gmail.com>"]
 edition = "2021"
@@ -41,9 +41,6 @@ cw2 = "0.13.2"
 schemars = "0.8.8"
 serde = { version = "1.0.137", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.31" }
-
-mitosis-interface = { path = "../../packages/interface" }
-
 
 [dev-dependencies]
 cw-multi-test = "0.13.2"
