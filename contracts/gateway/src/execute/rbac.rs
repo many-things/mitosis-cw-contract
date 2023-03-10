@@ -122,7 +122,6 @@ mod test {
             ]
         );
 
-        // is it actually changed?
         let current_owner = OWNER.load(&deps.storage).unwrap();
         assert_eq!(new_owner, current_owner);
     }

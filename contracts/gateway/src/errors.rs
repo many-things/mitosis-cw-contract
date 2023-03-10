@@ -26,4 +26,7 @@ pub enum ContractError {
 
     #[error("{msg:?}")]
     InvalidArgument { msg: String },
+
+    #[error("Pay Error: You must send at least one asset")]
+    MustPay {},
 }
