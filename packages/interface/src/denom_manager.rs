@@ -21,7 +21,7 @@ pub enum MigrateMsg {}
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
-    Config {},
+    GetConfig {},
 
     #[returns(ConvertResponse)]
     Convert { token: String },

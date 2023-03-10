@@ -1,7 +1,7 @@
 use cosmwasm_std::{to_binary, Addr, Deps, Env, QueryResponse};
 use mitosis_interface::{
-    denommanager::ConfigResponse,
-    liquiditymanager::{GetBalanceResponse, PauseInfoResponse},
+    denom_manager::ConfigResponse,
+    liquidity_manager::{GetBalanceResponse, PauseInfoResponse},
 };
 
 use crate::{

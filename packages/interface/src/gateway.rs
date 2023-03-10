@@ -13,7 +13,7 @@ pub enum ExecuteMsg {
     ChangeLiquidityManager { new_liquidity_manager: Addr },
     ChangeDenomManager { new_denom_manager: Addr },
     Pause { expires_at: u64 },
-    Releaes {},
+    Release {},
 }
 
 #[cw_serde]
@@ -23,7 +23,7 @@ pub enum MigrateMsg {}
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
-    Config {},
+    GetConfig {},
 }
 
 #[cw_serde]

@@ -1,6 +1,5 @@
 use cosmwasm_schema::write_api;
-
-use liquidity_manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use mitosis_interface::liquidity_manager::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn main() {
     write_api! {

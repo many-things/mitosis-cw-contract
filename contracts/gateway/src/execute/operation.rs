@@ -1,5 +1,5 @@
 use cosmwasm_std::{attr, to_binary, Addr, Attribute, Deps, Env, MessageInfo, Response, WasmMsg};
-use mitosis_interface::liquiditymanager;
+use mitosis_interface::liquidity_manager;
 
 use crate::{errors::ContractError, state::LIQUIDITY_MANAGER};
 
@@ -18,7 +18,7 @@ pub fn send(
         None => info.sender.clone(),
     };
 
-    let msg = liquiditymanager::ExecuteMsg::Deposit {
+    let msg = liquidity_manager::ExecuteMsg::Deposit {
         depositor: Some(depositor),
     };
 
@@ -91,7 +91,7 @@ mod test {
             ]
         );
 
-        let msg = liquiditymanager::ExecuteMsg::Deposit {
+        let msg = liquidity_manager::ExecuteMsg::Deposit {
             depositor: Some(addr),
         };
         assert_eq!(
@@ -128,7 +128,7 @@ mod test {
             ]
         );
 
-        let msg = liquiditymanager::ExecuteMsg::Deposit {
+        let msg = liquidity_manager::ExecuteMsg::Deposit {
             depositor: Some(receiver),
         };
         assert_eq!(
@@ -168,7 +168,7 @@ mod test {
             ]
         );
 
-        let msg = liquiditymanager::ExecuteMsg::Deposit {
+        let msg = liquidity_manager::ExecuteMsg::Deposit {
             depositor: Some(sender),
         };
         assert_eq!(
@@ -209,7 +209,7 @@ mod test {
             ]
         );
 
-        let msg = liquiditymanager::ExecuteMsg::Deposit {
+        let msg = liquidity_manager::ExecuteMsg::Deposit {
             depositor: Some(receiver),
         };
         assert_eq!(

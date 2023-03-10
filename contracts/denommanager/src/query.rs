@@ -1,5 +1,5 @@
 use cosmwasm_std::{to_binary, Deps, Env, QueryResponse};
-use mitosis_interface::denommanager::{ConfigResponse, ConvertResponse};
+use mitosis_interface::denom_manager::{ConfigResponse, ConvertResponse};
 
 use crate::{
     error::ContractError,

@@ -44,13 +44,13 @@ pub fn execute(
             managers::change_denom_manager(deps, env, info, new_denom_manager)
         }
         ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
-        ExecuteMsg::Releaes {} => gov::release(deps, env, info),
+        ExecuteMsg::Release {} => gov::release(deps, env, info),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
-    match msg {}
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -58,6 +58,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
     use crate::query;
 
     match msg {
-        QueryMsg::Config {} => query::get_config(deps, env),
+        QueryMsg::GetConfig {} => query::get_config(deps, env),
     }
 }

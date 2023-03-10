@@ -1,3 +1,3 @@
-pub mod denommanager;
+pub mod denom_manager;
 pub mod gateway;
-pub mod liquiditymanager;
+pub mod liquidity_manager;
