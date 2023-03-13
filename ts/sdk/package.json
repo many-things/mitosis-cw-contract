@@ -1,5 +1,5 @@
 {
-  "name": "mitosis-cw-contract-sdk",
+  "name": "@many-things/mitosis-cw-contract",
   "version": " 0.0.1",
   "description": "",
   "cdn": "dist/index.umd.js",
