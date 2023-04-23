@@ -6,7 +6,7 @@ use osmosis_std::types::{
 };
 
 use crate::{
-    state::PAUSED,
+    state::{delegates::delegate_balance, PAUSED},
     state::{DenomInfo, DENOM},
     ContractError,
 };
