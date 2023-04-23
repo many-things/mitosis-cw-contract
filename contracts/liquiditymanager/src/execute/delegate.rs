@@ -1,12 +1,13 @@
 use cosmwasm_std::{coin, CosmosMsg, DepsMut, Env, MessageInfo, Response};
 use cw_utils::must_pay;
+
 use osmosis_std::types::{
     cosmos::bank::v1beta1::MsgSend,
     osmosis::tokenfactory::v1beta1::{MsgBurn, MsgMint},
 };
 
 use crate::{
-    state::{delegates::delegate_balance, PAUSED},
+    state::PAUSED,
     state::{DenomInfo, DENOM},
     ContractError,
 };
@@ -49,6 +50,7 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
         .assert_not_paused()?;
 
     let denom: DenomInfo = DENOM.load(deps.storage)?;
+
     let balance = must_pay(&info, &denom.lp_denom).unwrap();
     let burn_message: CosmosMsg = MsgBurn {
         sender: env.clone().contract.address.into_string(),
