@@ -3,6 +3,7 @@ use cosmwasm_std::{Addr, Coin};
 
 #[cw_serde]
 pub struct InstantiateMsg {
+    pub denom: String,
     pub lp_denom: String,
 }
 
@@ -15,6 +16,8 @@ pub enum ExecuteMsg {
         withdrawer: Option<Addr>,
         amount: Coin,
     },
+    Delegate {},
+    Undelegate {},
     ChangeOwner {
         new_owner: Addr,
     },

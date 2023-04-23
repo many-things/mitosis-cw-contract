@@ -7,7 +7,7 @@ use osmosis_std::types::osmosis::tokenfactory::v1beta1::MsgCreateDenom;
 
 use crate::{
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE,
-    state::{rbac::OWNER, PAUSED, SUBDENOM},
+    state::{rbac::OWNER, DenomInfo, DENOM, PAUSED},
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -23,8 +23,11 @@ pub fn instantiate(
     OWNER.save(deps.storage, &info.sender)?;
     PAUSED.save(deps.storage, &Default::default())?;
 
-    let subdenom = format!("factory/{}/{}", info.sender.to_string(), msg.lp_denom);
-    SUBDENOM.save(deps.storage, &subdenom)?;
+    let denom = DenomInfo {
+        denom: msg.denom,
+        sub_denom: format!("factory/{}/{}", info.sender, msg.lp_denom),
+    };
+    DENOM.save(deps.storage, &denom)?;
 
     // Only consider single asset.
     let msg_create_denom: CosmosMsg = MsgCreateDenom {
@@ -51,13 +54,15 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    use crate::execute::{deposit::deposit, gov, rbac, withdraw::withdraw};
+    use crate::execute::{delegate, deposit::deposit, gov, rbac, withdraw::withdraw};
 
     match msg {
         ExecuteMsg::Deposit { depositor } => deposit(deps, env, info, depositor),
         ExecuteMsg::Withdraw { withdrawer, amount } => {
             withdraw(deps, env, info, withdrawer, amount)
         }
+        ExecuteMsg::Delegate {} => delegate::delegate(deps, env, info),
+        ExecuteMsg::Undelegate {} => delegate::undelegate(deps, env, info),
         ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
         ExecuteMsg::GrantRole { role, addr } => rbac::grant_role(deps, env, info, role, addr),
         ExecuteMsg::RevokeRole { role, addr } => rbac::revoke_role(deps, env, info, role, addr),
