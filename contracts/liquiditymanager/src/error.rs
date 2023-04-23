@@ -32,4 +32,10 @@ pub enum ContractError {
 
     #[error("{msg:?}")]
     InvalidArgument { msg: String },
+
+    #[error("Delegate asset not found")]
+    DelegateAssetNotFound {},
+
+    #[error("Insufficient Delegate asset")]
+    InsufficientDelegateAsset {},
 }

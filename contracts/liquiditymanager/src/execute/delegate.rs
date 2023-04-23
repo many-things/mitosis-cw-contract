@@ -1,6 +1,10 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use crate::{state::PAUSED, ContractError};
+use crate::{
+    state::PAUSED,
+    state::{DenomInfo, DENOM},
+    ContractError,
+};
 
 pub fn delegate(deps: DepsMut, env: Env, _info: MessageInfo) -> Result<Response, ContractError> {
     PAUSED
@@ -8,7 +12,9 @@ pub fn delegate(deps: DepsMut, env: Env, _info: MessageInfo) -> Result<Response,
         .refresh(deps.storage, &env)?
         .assert_not_paused()?;
 
-    unimplemented!();
+    let denom: DenomInfo = DENOM.load(deps.storage)?;
+
+    unimplemented!()
 }
 
 pub fn undelegate(deps: DepsMut, env: Env, _info: MessageInfo) -> Result<Response, ContractError> {
