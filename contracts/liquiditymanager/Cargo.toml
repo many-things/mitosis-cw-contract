@@ -52,6 +52,7 @@ thiserror = { version = "1.0.31" }
 serde_json = "1.0"
 
 mitosis-interface = { path = "../../packages/interface" }
+osmosis-std = "0.15.2"
 
 [dev-dependencies]
 cw-multi-test = "0.13.2"

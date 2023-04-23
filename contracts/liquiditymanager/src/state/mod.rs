@@ -10,6 +10,9 @@ use crate::ContractError;
 pub const PAUSED_KEY: &str = "paused";
 pub const PAUSED: Item<PauseInfo> = Item::new(PAUSED_KEY);
 
+pub const SUBDENOM_KEY: &str = "subdenom";
+pub const SUBDENOM: Item<String> = Item::new(SUBDENOM_KEY);
+
 #[cw_serde]
 #[derive(Default)]
 pub struct PauseInfo {

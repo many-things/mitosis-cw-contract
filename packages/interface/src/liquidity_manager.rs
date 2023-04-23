@@ -2,7 +2,9 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Coin};
 
 #[cw_serde]
-pub struct InstantiateMsg {}
+pub struct InstantiateMsg {
+    pub lp_denom: String,
+}
 
 #[cw_serde]
 pub enum ExecuteMsg {

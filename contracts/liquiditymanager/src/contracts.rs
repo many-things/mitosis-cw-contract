@@ -1,12 +1,13 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
+use cosmwasm_std::{CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
 use cw2::set_contract_version;
 use mitosis_interface::liquidity_manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use osmosis_std::types::osmosis::tokenfactory::v1beta1::MsgCreateDenom;
 
 use crate::{
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE,
-    state::{rbac::OWNER, PAUSED},
+    state::{rbac::OWNER, PAUSED, SUBDENOM},
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -15,14 +16,25 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     OWNER.save(deps.storage, &info.sender)?;
     PAUSED.save(deps.storage, &Default::default())?;
 
+    let subdenom = format!("factory/{}/{}", info.sender.to_string(), msg.lp_denom);
+    SUBDENOM.save(deps.storage, &subdenom)?;
+
+    // Only consider single asset.
+    let msg_create_denom: CosmosMsg = MsgCreateDenom {
+        sender: info.sender.clone().into(),
+        subdenom: msg.lp_denom,
+    }
+    .into();
+
     Ok(Response::new()
+        .add_message(msg_create_denom)
         .add_attribute("method", "instantiate")
         .add_attribute("owner", info.sender))
 }
