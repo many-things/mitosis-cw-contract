@@ -14,7 +14,7 @@ use crate::{
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
@@ -25,7 +25,7 @@ pub fn instantiate(
 
     let denom = DenomInfo {
         denom: msg.denom,
-        sub_denom: format!("factory/{}/{}", info.sender, msg.lp_denom),
+        sub_denom: format!("factory/{}/{}", env.contract.address, msg.lp_denom),
     };
     DENOM.save(deps.storage, &denom)?;
 

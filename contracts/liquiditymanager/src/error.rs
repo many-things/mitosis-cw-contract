@@ -38,4 +38,7 @@ pub enum ContractError {
 
     #[error("Insufficient Delegate asset")]
     InsufficientDelegateAsset {},
+
+    #[error("Delegate can accept only one kind of asset")]
+    DelegateAssetNotMatches {},
 }
