@@ -1,5 +1,4 @@
 pub mod balances;
-pub mod delegates;
 pub mod rbac;
 
 use cosmwasm_schema::cw_serde;
