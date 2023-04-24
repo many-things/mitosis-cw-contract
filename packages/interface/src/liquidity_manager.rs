@@ -5,6 +5,7 @@ use cosmwasm_std::{Addr, Coin, Uint128};
 pub struct InstantiateMsg {
     pub denom: String,
     pub lp_denom: String,
+    pub unbonding_period: u64,
 }
 
 #[cw_serde]
@@ -35,6 +36,9 @@ pub enum ExecuteMsg {
         expires_at: u64,
     },
     Release {},
+    ChangeConfig {
+        unbonding_period: u64,
+    },
 }
 
 #[cw_serde]
@@ -60,6 +64,7 @@ pub enum QueryMsg {
 #[cw_serde]
 pub struct ConfigResponse {
     pub owner: Addr,
+    pub unbonding_period: u64,
 }
 
 #[cw_serde]

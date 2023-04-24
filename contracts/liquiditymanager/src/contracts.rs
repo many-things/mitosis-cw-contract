@@ -74,6 +74,9 @@ pub fn execute(
         ExecuteMsg::RevokeRole { role, addr } => rbac::revoke_role(deps, env, info, role, addr),
         ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
         ExecuteMsg::Release {} => gov::release(deps, env, info),
+        ExecuteMsg::ChangeConfig { unbonding_period } => {
+            gov::change_config(deps, info, unbonding_period)
+        }
     }
 }
 

@@ -14,6 +14,9 @@ pub const PAUSED: Item<PauseInfo> = Item::new(PAUSED_KEY);
 pub const DENOM_KEY: &str = "denom";
 pub const DENOM: Item<DenomInfo> = Item::new(DENOM_KEY);
 
+pub const CONFIG_KEY: &str = "config";
+pub const CONFIG: Item<ConfigInfo> = Item::new(CONFIG_KEY);
+
 #[cw_serde]
 #[derive(Default)]
 pub struct PauseInfo {
@@ -25,6 +28,11 @@ pub struct PauseInfo {
 pub struct DenomInfo {
     pub denom: String,
     pub lp_denom: String,
+}
+
+#[cw_serde]
+pub struct ConfigInfo {
+    pub unbonding_period: u64,
 }
 
 impl PauseInfo {
