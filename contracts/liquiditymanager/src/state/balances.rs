@@ -90,7 +90,7 @@ mod test {
         let env = mock_env();
         let denom = "uosmo".to_string();
 
-        let mut storage = MockStorage::new();
+        let mut storage: cosmwasm_std::MemoryStorage = MockStorage::new();
         let info = mock_info(addr1.as_ref(), &coins(100000, denom.clone()));
 
         let response =
