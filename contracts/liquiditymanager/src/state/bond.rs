@@ -41,14 +41,29 @@ pub fn bond(
     }
 }
 
-pub fn unbond(
-    _storage: &mut dyn Storage,
-    _env: Env,
-    _bonder: Addr,
+pub fn start_unbond(
+    storage: &mut dyn Storage,
+    env: Env,
+    bonder: Addr,
 ) -> Result<BondInfo, ContractError> {
-    unimplemented!()
+    let mut bond_info = BONDS.load(storage, bonder.clone())?;
+
+    if bond_info.unbond_time.is_some() {
+        return Err(ContractError::UnbondingAlreadyStarted {});
+    }
+
+    bond_info.unbond_time = Some(env.block.time.seconds());
+    BONDS.save(storage, bonder, &bond_info)?;
+
+    Ok(bond_info)
 }
 
-pub fn query_bond(_storage: &dyn Storage, _bonder: Addr) -> Result<BondInfo, ContractError> {
-    unimplemented!()
+pub fn finish_unbond(storage: &mut dyn Storage, bonder: Addr) -> StdResult<()> {
+    BONDS.remove(storage, bonder);
+
+    Ok(())
+}
+
+pub fn query_bond(storage: &dyn Storage, bonder: Addr) -> StdResult<BondInfo> {
+    BONDS.load(storage, bonder)
 }
