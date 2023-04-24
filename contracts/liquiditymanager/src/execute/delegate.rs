@@ -1,5 +1,5 @@
 use cosmwasm_std::{coin, CosmosMsg, DepsMut, Env, MessageInfo, Response};
-use cw_utils::one_coin;
+use cw_utils::{must_pay, one_coin};
 use osmosis_std::types::{
     cosmos::bank::v1beta1::MsgSend,
     osmosis::tokenfactory::v1beta1::{MsgBurn, MsgMint},
@@ -18,17 +18,9 @@ pub fn delegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         .assert_not_paused()?;
 
     let denom: DenomInfo = DENOM.load(deps.storage)?;
-    let balance = match one_coin(&info) {
-        Ok(coin) => {
-            if coin.denom != denom.denom {
-                return Err(ContractError::DelegateAssetNotMatches {});
-            }
-            coin
-        }
-        Err(_) => return Err(ContractError::DelegateAssetNotMatches {}),
-    };
+    let balance = must_pay(&info, &denom.denom).unwrap();
 
-    let lp_amount = coin(balance.amount.into(), denom.lp_denom);
+    let lp_amount = coin(balance.into(), denom.lp_denom);
 
     let mint_message: CosmosMsg = MsgMint {
         sender: env.contract.address.to_string(),
@@ -47,7 +39,7 @@ pub fn delegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         .add_messages(vec![mint_message, send_message])
         .add_attribute("action", "delegate")
         .add_attribute("executor", info.sender)
-        .add_attribute("amount", balance.amount))
+        .add_attribute("amount", balance))
 }
 
 pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
@@ -57,26 +49,17 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
         .assert_not_paused()?;
 
     let denom: DenomInfo = DENOM.load(deps.storage)?;
-    let balance = match one_coin(&info) {
-        Ok(coin) => {
-            if coin.denom != denom.lp_denom {
-                return Err(ContractError::DelegateAssetNotMatches {});
-            }
-            coin
-        }
-        Err(_) => return Err(ContractError::DelegateAssetNotMatches {}),
-    };
-
+    let balance = must_pay(&info, &denom.lp_denom).unwrap();
     let burn_message: CosmosMsg = MsgBurn {
         sender: env.clone().contract.address.into_string(),
-        amount: Some(balance.clone().into()),
+        amount: Some(coin(balance.into(), denom.lp_denom).into()),
     }
     .into();
 
     let send_message: CosmosMsg = MsgSend {
         from_address: env.contract.address.into_string(),
         to_address: info.clone().sender.into_string(),
-        amount: vec![coin(balance.amount.into(), denom.denom).into()],
+        amount: vec![coin(balance.into(), denom.denom).into()],
     }
     .into();
 
@@ -84,7 +67,7 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
         .add_messages(vec![burn_message, send_message])
         .add_attribute("action", "undelegate")
         .add_attribute("executor", info.sender)
-        .add_attribute("amount", balance.amount))
+        .add_attribute("amount", balance))
 }
 
 #[cfg(test)]
