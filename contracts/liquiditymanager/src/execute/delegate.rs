@@ -1,6 +1,5 @@
 use cosmwasm_std::{coin, CosmosMsg, DepsMut, Env, MessageInfo, Response};
 use cw_utils::must_pay;
-
 use osmosis_std::types::{
     cosmos::bank::v1beta1::MsgSend,
     osmosis::tokenfactory::v1beta1::{MsgBurn, MsgMint},

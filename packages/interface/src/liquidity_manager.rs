@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, Coin};
+use cosmwasm_std::{Addr, Coin, Uint128};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -18,6 +18,8 @@ pub enum ExecuteMsg {
     },
     Delegate {},
     Undelegate {},
+    Bond {},
+    Unbond {},
     ChangeOwner {
         new_owner: Addr,
     },
@@ -50,6 +52,9 @@ pub enum QueryMsg {
 
     #[returns(GetBalanceResponse)]
     GetBalance { depositor: Addr },
+
+    #[returns(GetBondResponse)]
+    GetBond { bonder: Addr },
 }
 
 #[cw_serde]
@@ -67,4 +72,11 @@ pub struct PauseInfoResponse {
 pub struct GetBalanceResponse {
     pub depositor: Addr,
     pub assets: Vec<Coin>,
+}
+
+#[cw_serde]
+pub struct GetBondResponse {
+    pub amount: Uint128,
+    pub bond_time: u64,
+    pub unbond_time: Option<u64>,
 }
