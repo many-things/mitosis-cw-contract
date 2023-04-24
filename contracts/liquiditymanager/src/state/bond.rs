@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Env, Storage, Uint128};
+use cosmwasm_std::{Addr, Env, StdResult, Storage, Uint128};
 use cw_storage_plus::Map;
 
 use crate::ContractError;
@@ -15,12 +15,30 @@ pub struct BondInfo {
 }
 
 pub fn bond(
-    _storage: &mut dyn Storage,
-    _env: Env,
-    _bonder: Addr,
-    _amount: Uint128,
-) -> Result<BondInfo, ContractError> {
-    unimplemented!()
+    storage: &mut dyn Storage,
+    env: Env,
+    bonder: Addr,
+    amount: Uint128,
+) -> StdResult<BondInfo> {
+    // TODO: consider more cases
+    match BONDS.may_load(storage, bonder.clone())? {
+        Some(mut bond) => {
+            bond.amount = bond.amount.checked_add(amount)?;
+            BONDS.save(storage, bonder, &bond)?;
+
+            Ok(bond)
+        }
+        None => {
+            let bond = BondInfo {
+                amount,
+                bond_time: env.block.time.seconds(),
+                unbond_time: None,
+            };
+            BONDS.save(storage, bonder, &bond)?;
+
+            Ok(bond)
+        }
+    }
 }
 
 pub fn unbond(

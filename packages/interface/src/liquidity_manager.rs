@@ -20,6 +20,7 @@ pub enum ExecuteMsg {
     Delegate {},
     Undelegate {},
     Bond {},
+    StartUnbond {},
     Unbond {},
     ChangeOwner {
         new_owner: Addr,

@@ -8,7 +8,10 @@ use mitosis_interface::liquidity_manager::{ExecuteMsg, InstantiateMsg, MigrateMs
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgCreateDenom, MsgCreateDenomResponse};
 
 use crate::{
-    execute::consts::{REPLY_CREATE_DENOM_SUCCESS, REPLY_WITHDRAW_SUBMESSAGE_FAILURE},
+    execute::{
+        consts::{REPLY_CREATE_DENOM_SUCCESS, REPLY_WITHDRAW_SUBMESSAGE_FAILURE},
+        lp,
+    },
     state::{rbac::OWNER, DenomInfo, DENOM, PAUSED},
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
@@ -67,7 +70,8 @@ pub fn execute(
         }
         ExecuteMsg::Delegate {} => delegate::delegate(deps, env, info),
         ExecuteMsg::Undelegate {} => delegate::undelegate(deps, env, info),
-        ExecuteMsg::Bond {} => unimplemented!(),
+        ExecuteMsg::Bond {} => lp::bond_lp(deps, env, info),
+        ExecuteMsg::StartUnbond {} => unimplemented!(),
         ExecuteMsg::Unbond {} => unimplemented!(),
         ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
         ExecuteMsg::GrantRole { role, addr } => rbac::grant_role(deps, env, info, role, addr),
