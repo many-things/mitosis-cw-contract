@@ -50,7 +50,6 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
         .assert_not_paused()?;
 
     let denom: DenomInfo = DENOM.load(deps.storage)?;
-
     let balance = must_pay(&info, &denom.lp_denom).unwrap();
     let burn_message: CosmosMsg = MsgBurn {
         sender: env.clone().contract.address.into_string(),
