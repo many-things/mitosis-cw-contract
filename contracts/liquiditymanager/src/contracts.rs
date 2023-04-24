@@ -1,6 +1,8 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
+use cosmwasm_std::{
+    CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response, Uint128,
+};
 use cw2::set_contract_version;
 use mitosis_interface::liquidity_manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::MsgCreateDenom;
@@ -25,13 +27,13 @@ pub fn instantiate(
 
     let denom = DenomInfo {
         denom: msg.denom,
-        sub_denom: format!("factory/{}/{}", env.contract.address, msg.lp_denom),
+        sub_denom: "".to_string(),
     };
     DENOM.save(deps.storage, &denom)?;
 
     // Only consider single asset.
     let msg_create_denom: CosmosMsg = MsgCreateDenom {
-        sender: info.sender.clone().into(),
+        sender: env.contract.address.to_string(),
         subdenom: msg.lp_denom,
     }
     .into();

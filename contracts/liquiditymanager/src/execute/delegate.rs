@@ -6,10 +6,7 @@ use osmosis_std::types::{
 };
 
 use crate::{
-    state::{
-        delegates::{delegate_balance, undelegate_balance},
-        PAUSED,
-    },
+    state::PAUSED,
     state::{DenomInfo, DENOM},
     ContractError,
 };
@@ -31,7 +28,6 @@ pub fn delegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         Err(_) => return Err(ContractError::DelegateAssetNotMatches {}),
     };
 
-    delegate_balance(deps.storage, env.clone(), info.clone(), balance.clone())?;
     let lp_amount = coin(balance.amount.into(), denom.sub_denom);
 
     let mint_message: CosmosMsg = MsgMint {
@@ -71,11 +67,6 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
         Err(_) => return Err(ContractError::DelegateAssetNotMatches {}),
     };
 
-    match undelegate_balance(deps.storage, env.clone(), info.clone(), balance.clone()) {
-        Ok(amount) => amount,
-        Err(_) => return Err(ContractError::InsufficientDelegateAsset {}),
-    };
-
     let burn_message: CosmosMsg = MsgBurn {
         sender: env.clone().contract.address.into_string(),
         amount: Some(balance.clone().into()),
@@ -98,7 +89,7 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
 
 #[cfg(test)]
 mod test {
-    use crate::state::{delegates::DELEGATE_AMOUNT, DenomInfo, PauseInfo, DENOM, PAUSED};
+    use crate::state::{DenomInfo, PauseInfo, DENOM, PAUSED};
     use cosmwasm_std::{
         attr, coin,
         testing::{mock_dependencies, mock_env, mock_info},
@@ -251,9 +242,6 @@ mod test {
 
         let addr = Addr::unchecked(ADDR1);
         let info = mock_info(addr.as_str(), &[coin(200000, denom.sub_denom.clone())]);
-        DELEGATE_AMOUNT
-            .save(deps.as_mut().storage, &Uint128::new(1000000))
-            .unwrap();
 
         resume(deps.as_mut().storage, env.block.time.seconds());
 
