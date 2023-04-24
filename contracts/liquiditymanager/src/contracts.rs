@@ -1,14 +1,14 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response, Uint128,
+    CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response, SubMsg,
 };
 use cw2::set_contract_version;
 use mitosis_interface::liquidity_manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use osmosis_std::types::osmosis::tokenfactory::v1beta1::MsgCreateDenom;
+use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgCreateDenom, MsgCreateDenomResponse};
 
 use crate::{
-    execute::consts::REPLY_WITHDRAW_SUBMESSAGE_FAILURE,
+    execute::consts::{REPLY_CREATE_DENOM_SUCCESS, REPLY_WITHDRAW_SUBMESSAGE_FAILURE},
     state::{rbac::OWNER, DenomInfo, DENOM, PAUSED},
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
@@ -27,7 +27,7 @@ pub fn instantiate(
 
     let denom = DenomInfo {
         denom: msg.denom,
-        sub_denom: "".to_string(),
+        lp_denom: "".to_string(),
     };
     DENOM.save(deps.storage, &denom)?;
 
@@ -38,8 +38,10 @@ pub fn instantiate(
     }
     .into();
 
+    let submessage = SubMsg::reply_on_success(msg_create_denom, REPLY_CREATE_DENOM_SUCCESS);
+
     Ok(Response::new()
-        .add_message(msg_create_denom)
+        .add_submessage(submessage)
         .add_attribute("method", "instantiate")
         .add_attribute("owner", info.sender))
 }
@@ -74,9 +76,21 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractError> {
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractError> {
     match msg.id {
         REPLY_WITHDRAW_SUBMESSAGE_FAILURE => Ok(Response::new()),
+        REPLY_CREATE_DENOM_SUCCESS => {
+            let conv_msg: MsgCreateDenomResponse = msg.result.unwrap().data.unwrap().try_into()?;
+
+            let mut denom = DENOM.load(deps.storage)?;
+            denom.lp_denom = conv_msg.new_token_denom;
+            DENOM.save(deps.storage, &denom)?;
+
+            let resp = Response::new()
+                .add_attribute("action", "reply_instantiate")
+                .add_attribute("new_denom", denom.lp_denom);
+            Ok(resp)
+        }
         id => Err(ContractError::ReplyIdNotFound { id }),
     }
 }

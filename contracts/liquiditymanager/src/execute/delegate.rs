@@ -28,7 +28,7 @@ pub fn delegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         Err(_) => return Err(ContractError::DelegateAssetNotMatches {}),
     };
 
-    let lp_amount = coin(balance.amount.into(), denom.sub_denom);
+    let lp_amount = coin(balance.amount.into(), denom.lp_denom);
 
     let mint_message: CosmosMsg = MsgMint {
         sender: env.contract.address.to_string(),
@@ -59,7 +59,7 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
     let denom: DenomInfo = DENOM.load(deps.storage)?;
     let balance = match one_coin(&info) {
         Ok(coin) => {
-            if coin.denom != denom.sub_denom {
+            if coin.denom != denom.lp_denom {
                 return Err(ContractError::DelegateAssetNotMatches {});
             }
             coin
@@ -102,7 +102,7 @@ mod test {
     fn mock_denom(storage: &mut dyn Storage, env: Env) -> DenomInfo {
         let denom_info = DenomInfo {
             denom: "uusdc".to_string(),
-            sub_denom: format!("factory/{}/uusdc", env.contract.address),
+            lp_denom: format!("factory/{}/uusdc", env.contract.address),
         };
 
         DENOM.save(storage, &denom_info).unwrap();
@@ -183,12 +183,12 @@ mod test {
             vec![
                 SubMsg::new(MsgMint {
                     sender: env.contract.address.to_string(),
-                    amount: Some(coin(Uint128::new(200000).into(), denom.clone().sub_denom).into()),
+                    amount: Some(coin(Uint128::new(200000).into(), denom.clone().lp_denom).into()),
                 }),
                 SubMsg::new(MsgSend {
                     from_address: env.contract.address.into_string(),
                     to_address: addr.clone().into_string(),
-                    amount: vec![coin(Uint128::new(200000).into(), denom.sub_denom).into()],
+                    amount: vec![coin(Uint128::new(200000).into(), denom.lp_denom).into()],
                 })
             ]
         );
@@ -241,7 +241,7 @@ mod test {
         let denom = mock_denom(deps.as_mut().storage, env.clone());
 
         let addr = Addr::unchecked(ADDR1);
-        let info = mock_info(addr.as_str(), &[coin(200000, denom.sub_denom.clone())]);
+        let info = mock_info(addr.as_str(), &[coin(200000, denom.lp_denom.clone())]);
 
         resume(deps.as_mut().storage, env.block.time.seconds());
 
@@ -252,7 +252,7 @@ mod test {
             vec![
                 SubMsg::new(MsgBurn {
                     sender: env.contract.address.to_string(),
-                    amount: Some(coin(Uint128::new(200000).into(), denom.clone().sub_denom).into()),
+                    amount: Some(coin(Uint128::new(200000).into(), denom.clone().lp_denom).into()),
                 }),
                 SubMsg::new(MsgSend {
                     from_address: env.contract.address.into_string(),

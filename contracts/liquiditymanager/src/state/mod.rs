@@ -23,7 +23,7 @@ pub struct PauseInfo {
 #[cw_serde]
 pub struct DenomInfo {
     pub denom: String,
-    pub sub_denom: String,
+    pub lp_denom: String,
 }
 
 impl PauseInfo {
