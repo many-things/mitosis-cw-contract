@@ -1,8 +1,10 @@
 use cosmwasm_std::{to_binary, Addr, Deps, Env, QueryResponse};
-use mitosis_interface::liquidity_manager::{ConfigResponse, GetBalanceResponse, PauseInfoResponse};
+use mitosis_interface::liquidity_manager::{
+    ConfigResponse, GetBalanceResponse, GetBondResponse, PauseInfoResponse,
+};
 
 use crate::{
-    state::{balances::inquiry_balance, rbac::OWNER, ConfigInfo, CONFIG, PAUSED},
+    state::{balances::inquiry_balance, bond::query_bond, rbac::OWNER, ConfigInfo, CONFIG, PAUSED},
     ContractError,
 };
 
@@ -31,5 +33,15 @@ pub fn get_balance(deps: Deps, env: Env, depositor: Addr) -> Result<QueryRespons
     Ok(to_binary(&GetBalanceResponse {
         depositor,
         assets: result,
+    })?)
+}
+
+pub fn get_bonds(deps: Deps, bonder: Addr) -> Result<QueryResponse, ContractError> {
+    let result = query_bond(deps.storage, bonder)?;
+
+    Ok(to_binary(&GetBondResponse {
+        amount: result.amount,
+        bond_time: result.bond_time,
+        unbond_time: result.unbond_time,
     })?)
 }

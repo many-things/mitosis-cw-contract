@@ -38,4 +38,10 @@ pub enum ContractError {
 
     #[error("Unbonding already started")]
     UnbondingAlreadyStarted {},
+
+    #[error("Unbonding not started")]
+    UnbondingNotStarted {},
+
+    #[error("Unbonding not finished")]
+    UnbondingNotFinished {},
 }

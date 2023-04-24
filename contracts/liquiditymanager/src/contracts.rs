@@ -71,8 +71,8 @@ pub fn execute(
         ExecuteMsg::Delegate {} => delegate::delegate(deps, env, info),
         ExecuteMsg::Undelegate {} => delegate::undelegate(deps, env, info),
         ExecuteMsg::Bond {} => lp::bond_lp(deps, env, info),
-        ExecuteMsg::StartUnbond {} => unimplemented!(),
-        ExecuteMsg::Unbond {} => unimplemented!(),
+        ExecuteMsg::StartUnbond {} => lp::start_unbond_lp(deps, env, info),
+        ExecuteMsg::Unbond {} => lp::finish_unbond_lp(deps, env, info),
         ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
         ExecuteMsg::GrantRole { role, addr } => rbac::grant_role(deps, env, info, role, addr),
         ExecuteMsg::RevokeRole { role, addr } => rbac::revoke_role(deps, env, info, role, addr),
@@ -112,6 +112,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
         QueryMsg::GetConfig {} => query::get_config(deps, env),
         QueryMsg::PauseInfo {} => query::get_paused_info(deps, env),
         QueryMsg::GetBalance { depositor } => query::get_balance(deps, env, depositor),
-        QueryMsg::GetBond { bonder } => unimplemented!(),
+        QueryMsg::GetBond { bonder } => query::get_bonds(deps, bonder),
     }
 }
