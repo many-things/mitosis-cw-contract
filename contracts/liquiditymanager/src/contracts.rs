@@ -61,7 +61,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    use crate::execute::{delegate, deposit::deposit, gov, rbac, withdraw::withdraw};
+    use crate::execute::{delegate, deposit, gov, rbac, withdraw};
 
     match msg {
         ExecuteMsg::Deposit { depositor } => deposit(deps, env, info, depositor),
