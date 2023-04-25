@@ -53,7 +53,7 @@ pub fn init_unbonds_id(storage: &mut dyn Storage) -> StdResult<()> {
     Ok(())
 }
 
-pub fn get_unbonds_by_bonder(storage: &dyn Storage, bonder: Addr) -> StdResult<Vec<UnbondInfo>> {
+pub fn get_unbonds_by_owner(storage: &dyn Storage, bonder: Addr) -> StdResult<Vec<UnbondInfo>> {
     let result = unbonds()
         .idx
         .owner
@@ -98,7 +98,7 @@ pub fn start_unbond(
     amount: Uint128,
 ) -> Result<UnbondInfo, ContractError> {
     let bonds = BONDS.load(storage, bonder.clone())?;
-    let current_unbonds = get_unbonds_by_bonder(storage, bonder.clone())?;
+    let current_unbonds = get_unbonds_by_owner(storage, bonder.clone())?;
 
     let unbond_amount: Uint128 = current_unbonds
         .into_iter()
@@ -153,6 +153,6 @@ pub fn query_unbond(storage: &dyn Storage, unbond_id: u64) -> StdResult<UnbondIn
     unbonds().load(storage, unbond_id)
 }
 
-pub fn query_unbonds_by_bonder(storage: &dyn Storage, bonder: Addr) -> StdResult<Vec<UnbondInfo>> {
-    get_unbonds_by_bonder(storage, bonder)
+pub fn query_unbonds_by_owner(storage: &dyn Storage, bonder: Addr) -> StdResult<Vec<UnbondInfo>> {
+    get_unbonds_by_owner(storage, bonder)
 }

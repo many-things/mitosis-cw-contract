@@ -113,5 +113,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
         QueryMsg::PauseInfo {} => query::get_paused_info(deps, env),
         QueryMsg::GetBalance { depositor } => query::get_balance(deps, env, depositor),
         QueryMsg::GetBond { bonder } => query::get_bonds(deps, bonder),
+        QueryMsg::GetUnbond { unbond_id } => query::get_unbond(deps, unbond_id),
+        QueryMsg::GetUnbondsByOwner { owner } => query::get_unbonds_by_owner(deps, owner),
     }
 }

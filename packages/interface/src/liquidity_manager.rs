@@ -64,6 +64,12 @@ pub enum QueryMsg {
 
     #[returns(GetBondResponse)]
     GetBond { bonder: Addr },
+
+    #[returns(GetUnbondResponse)]
+    GetUnbond { unbond_id: u64 },
+
+    #[returns(GetUnbondListResponse)]
+    GetUnbondsByOwner { owner: Addr },
 }
 
 #[cw_serde]
@@ -88,4 +94,17 @@ pub struct GetBalanceResponse {
 pub struct GetBondResponse {
     pub amount: Uint128,
     pub bond_time: u64,
+}
+
+#[cw_serde]
+pub struct GetUnbondResponse {
+    pub unbond_id: u64,
+    pub owner: Addr,
+    pub amount: Uint128,
+    pub unbond_time: u64,
+}
+
+#[cw_serde]
+pub struct GetUnbondListResponse {
+    pub items: Vec<GetUnbondResponse>,
 }
