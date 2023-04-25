@@ -1,4 +1,4 @@
-use cosmwasm_std::{attr, coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, SubMsg};
+use cosmwasm_std::{attr, coin, CosmosMsg, DepsMut, Env, MessageInfo, Response};
 use cw_utils::must_pay;
 use osmosis_std::types::cosmos::bank::v1beta1::MsgSend;
 
