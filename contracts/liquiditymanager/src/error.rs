@@ -36,6 +36,9 @@ pub enum ContractError {
     #[error("Delegate can accept only one kind of asset")]
     DelegateAssetNotMatches {},
 
+    #[error("Insufficient Bond amount")]
+    InsufficientBondAmount {},
+
     #[error("Unbonding already started")]
     UnbondingAlreadyStarted {},
 

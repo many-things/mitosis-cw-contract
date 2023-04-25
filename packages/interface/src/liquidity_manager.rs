@@ -20,8 +20,12 @@ pub enum ExecuteMsg {
     Delegate {},
     Undelegate {},
     Bond {},
-    StartUnbond {},
-    Unbond {},
+    StartUnbond {
+        amount: Uint128,
+    },
+    Unbond {
+        unbond_id: u64,
+    },
     ChangeOwner {
         new_owner: Addr,
     },
@@ -84,5 +88,4 @@ pub struct GetBalanceResponse {
 pub struct GetBondResponse {
     pub amount: Uint128,
     pub bond_time: u64,
-    pub unbond_time: Option<u64>,
 }

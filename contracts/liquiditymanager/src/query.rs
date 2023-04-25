@@ -42,6 +42,5 @@ pub fn get_bonds(deps: Deps, bonder: Addr) -> Result<QueryResponse, ContractErro
     Ok(to_binary(&GetBondResponse {
         amount: result.amount,
         bond_time: result.bond_time,
-        unbond_time: result.unbond_time,
     })?)
 }
