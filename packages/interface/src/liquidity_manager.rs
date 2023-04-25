@@ -2,7 +2,10 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Coin};
 
 #[cw_serde]
-pub struct InstantiateMsg {}
+pub struct InstantiateMsg {
+    pub denom: String,
+    pub lp_denom: String,
+}
 
 #[cw_serde]
 pub enum ExecuteMsg {
@@ -13,6 +16,8 @@ pub enum ExecuteMsg {
         withdrawer: Option<Addr>,
         amount: Coin,
     },
+    Delegate {},
+    Undelegate {},
     ChangeOwner {
         new_owner: Addr,
     },

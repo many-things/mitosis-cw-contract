@@ -10,11 +10,20 @@ use crate::ContractError;
 pub const PAUSED_KEY: &str = "paused";
 pub const PAUSED: Item<PauseInfo> = Item::new(PAUSED_KEY);
 
+pub const DENOM_KEY: &str = "denom";
+pub const DENOM: Item<DenomInfo> = Item::new(DENOM_KEY);
+
 #[cw_serde]
 #[derive(Default)]
 pub struct PauseInfo {
     pub paused: bool,
     pub expires_at: Option<u64>,
+}
+
+#[cw_serde]
+pub struct DenomInfo {
+    pub denom: String,
+    pub lp_denom: String,
 }
 
 impl PauseInfo {
