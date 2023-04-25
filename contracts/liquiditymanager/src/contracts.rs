@@ -12,7 +12,7 @@ use crate::{
         consts::{REPLY_CREATE_DENOM_SUCCESS, REPLY_WITHDRAW_SUBMESSAGE_FAILURE},
         lp,
     },
-    state::{rbac::OWNER, DenomInfo, DENOM, PAUSED},
+    state::{bond::init_unbonds_id, rbac::OWNER, DenomInfo, DENOM, PAUSED},
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -33,6 +33,7 @@ pub fn instantiate(
         lp_denom: "".to_string(),
     };
     DENOM.save(deps.storage, &denom)?;
+    init_unbonds_id(deps.storage)?;
 
     // Only consider single asset.
     let msg_create_denom: CosmosMsg = MsgCreateDenom {

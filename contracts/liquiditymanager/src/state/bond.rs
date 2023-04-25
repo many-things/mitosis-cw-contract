@@ -134,6 +134,7 @@ pub fn finish_unbond(
 ) -> Result<UnbondInfo, ContractError> {
     let unbond = unbonds().load(storage, unbond_id)?;
     let config = CONFIG.load(storage)?;
+    let mut bond: BondInfo = BONDS.load(storage, bonder.clone())?;
 
     if unbond.owner != bonder {
         return Err(ContractError::Unauthorized {});
@@ -142,6 +143,9 @@ pub fn finish_unbond(
     }
 
     unbonds().remove(storage, unbond_id)?;
+    bond.amount = bond.amount.checked_sub(unbond.amount).unwrap();
+    BONDS.save(storage, bonder, &bond)?;
+
     Ok(unbond)
 }
 
@@ -155,4 +159,202 @@ pub fn query_unbond(storage: &dyn Storage, unbond_id: u64) -> StdResult<UnbondIn
 
 pub fn query_unbonds_by_owner(storage: &dyn Storage, bonder: Addr) -> StdResult<Vec<UnbondInfo>> {
     get_unbonds_by_owner(storage, bonder)
+}
+
+#[cfg(test)]
+mod test {
+    use cosmwasm_std::{
+        testing::mock_env,
+        testing::{mock_info, MockStorage},
+    };
+
+    use crate::state::ConfigInfo;
+
+    use super::*;
+
+    const ADDR1_VALUE: &str = "addr1";
+    const ADDR2_VALUE: &str = "addr2";
+
+    fn initialize_bond(storage: &mut dyn Storage, bonder: Addr, amount: Uint128, bond_time: u64) {
+        BONDS
+            .save(storage, bonder, &BondInfo { amount, bond_time })
+            .unwrap();
+    }
+
+    fn initialize_unbond(
+        storage: &mut dyn Storage,
+        owner: Addr,
+        amount: Uint128,
+        unbond_time: u64,
+    ) -> u64 {
+        let unbond_id = UNBONDS_ID.load(storage).unwrap();
+        let new_unbond = UnbondInfo {
+            unbond_id,
+            amount,
+            owner,
+            unbond_time,
+        };
+
+        unbonds().save(storage, unbond_id, &new_unbond).unwrap();
+        UNBONDS_ID.save(storage, &(unbond_id + 1)).unwrap();
+
+        unbond_id
+    }
+
+    #[test]
+    fn test_initialize_bond() {
+        let bonder = Addr::unchecked(ADDR1_VALUE);
+        let mut storage = MockStorage::new();
+        let env = mock_env();
+
+        let result = bond(&mut storage, env, bonder.clone(), Uint128::new(100000)).unwrap();
+        let saved_info = BONDS.load(&storage, bonder).unwrap();
+
+        assert_eq!(result, saved_info);
+    }
+
+    #[test]
+    fn test_exist_bond() {
+        let bonder = Addr::unchecked(ADDR1_VALUE);
+        let mut storage = MockStorage::new();
+        let env = mock_env();
+
+        initialize_bond(&mut storage, bonder.clone(), Uint128::new(100000), 0);
+
+        let result = bond(&mut storage, env, bonder.clone(), Uint128::new(100000)).unwrap();
+        let saved_info = BONDS.load(&storage, bonder).unwrap();
+
+        assert_eq!(result, saved_info);
+        assert_eq!(result.amount, Uint128::new(200000));
+    }
+
+    #[test]
+    fn test_start_unbond_successfully() {
+        let bonder = Addr::unchecked(ADDR1_VALUE);
+        let mut storage = MockStorage::new();
+        let env = mock_env();
+
+        initialize_bond(&mut storage, bonder.clone(), Uint128::new(100000), 0);
+        init_unbonds_id(&mut storage).unwrap();
+
+        let first_unbonding = start_unbond(
+            &mut storage,
+            env.clone(),
+            bonder.clone(),
+            Uint128::new(50000),
+        )
+        .unwrap();
+        assert_eq!(first_unbonding.amount, Uint128::new(50000));
+        assert_eq!(first_unbonding.unbond_id, 0u64); // first initialize
+
+        let second_unbonding =
+            start_unbond(&mut storage, env, bonder, Uint128::new(40000)).unwrap();
+
+        assert_eq!(second_unbonding.amount, Uint128::new(40000));
+        assert_eq!(second_unbonding.unbond_id, 1u64); // second initialize
+    }
+
+    #[test]
+    fn test_start_unbond_failure() {
+        let bonder = Addr::unchecked(ADDR1_VALUE);
+        let mut storage = MockStorage::new();
+        let env = mock_env();
+
+        initialize_bond(&mut storage, bonder.clone(), Uint128::new(100000), 0);
+        init_unbonds_id(&mut storage).unwrap();
+        initialize_unbond(&mut storage, bonder.clone(), Uint128::new(40000), 0u64);
+        initialize_unbond(&mut storage, bonder.clone(), Uint128::new(60000), 0u64);
+
+        let insufficient_err =
+            start_unbond(&mut storage, env, bonder, Uint128::new(50000)).unwrap_err();
+        assert!(matches!(
+            insufficient_err,
+            ContractError::InsufficientBondAmount {}
+        ))
+    }
+
+    #[test]
+    fn test_finish_unbond_failure() {
+        let bonder = Addr::unchecked(ADDR1_VALUE);
+        let not_bonder: Addr = Addr::unchecked(ADDR2_VALUE);
+
+        let mut storage = MockStorage::new();
+        let env = mock_env();
+
+        CONFIG
+            .save(
+                &mut storage,
+                &ConfigInfo {
+                    unbonding_period: 20u64,
+                },
+            )
+            .unwrap();
+
+        initialize_bond(&mut storage, bonder.clone(), Uint128::new(100000), 0);
+        initialize_bond(&mut storage, not_bonder.clone(), Uint128::new(100000), 0);
+
+        init_unbonds_id(&mut storage).unwrap();
+        let unbond_id = initialize_unbond(
+            &mut storage,
+            bonder.clone(),
+            Uint128::new(40000),
+            env.block.time.seconds(),
+        );
+
+        let not_period_unbonding =
+            finish_unbond(&mut storage, env.clone(), bonder, unbond_id).unwrap_err();
+
+        assert!(matches!(
+            not_period_unbonding,
+            ContractError::UnbondingNotFinished {}
+        ));
+
+        let not_owned_unbonding =
+            finish_unbond(&mut storage, env, not_bonder, unbond_id).unwrap_err();
+
+        println!("{}", not_owned_unbonding);
+        assert!(matches!(
+            not_owned_unbonding,
+            ContractError::Unauthorized {}
+        ));
+    }
+
+    #[test]
+    fn test_finish_unbond_success() {
+        let bonder = Addr::unchecked(ADDR1_VALUE);
+
+        let mut storage = MockStorage::new();
+        let env = mock_env();
+
+        CONFIG
+            .save(
+                &mut storage,
+                &ConfigInfo {
+                    unbonding_period: 20u64,
+                },
+            )
+            .unwrap();
+
+        initialize_bond(&mut storage, bonder.clone(), Uint128::new(100000), 0);
+
+        init_unbonds_id(&mut storage).unwrap();
+        let unbond_id = initialize_unbond(
+            &mut storage,
+            bonder.clone(),
+            Uint128::new(40000),
+            env.block.time.seconds() - 30u64,
+        );
+
+        let success_unbonding =
+            finish_unbond(&mut storage, env, bonder.clone(), unbond_id).unwrap();
+
+        assert_eq!(success_unbonding.amount, Uint128::new(40000));
+
+        // removed amount successfully
+        let bond = BONDS.load(&storage, bonder).unwrap();
+        assert_eq!(bond.amount, Uint128::new(60000));
+
+        // successfully removed
+        assert!(!unbonds().has(&storage, unbond_id))
+    }
 }
