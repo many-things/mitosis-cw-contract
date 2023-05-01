@@ -1,7 +1,10 @@
-use cosmwasm_std::{attr, to_binary, Addr, Deps, Env, MessageInfo, Response, WasmMsg};
+use cosmwasm_std::{attr, to_binary, Addr, Coin, Deps, Env, MessageInfo, Response, WasmMsg};
 use mitosis_interface::liquidity_manager;
 
-use crate::{errors::ContractError, state::LIQUIDITY_MANAGER};
+use crate::{
+    errors::ContractError,
+    state::{assert_owned, LIQUIDITY_MANAGER},
+};
 
 pub fn send(
     deps: Deps,
@@ -37,6 +40,22 @@ pub fn send(
             attr("assets", deposit_attributes),
         ]);
     Ok(resp)
+}
+
+pub fn receive(
+    deps: Deps,
+    _env: Env,
+    info: MessageInfo,
+    _to: Addr,
+    _amount: Coin,
+) -> Result<Response, ContractError> {
+    // Relayer call this method. To withdraw asset from liquidity manager.
+    assert_owned(deps.storage, info.sender)?;
+
+    let msg = liquidity_manager::ExecuteMsg::Withdraw { withdrawer: (), amount: () }
+
+    let response = Response::new();
+    Ok(response)
 }
 
 #[cfg(test)]
