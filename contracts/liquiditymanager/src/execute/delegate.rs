@@ -1,5 +1,5 @@
 use cosmwasm_std::{coin, CosmosMsg, DepsMut, Env, MessageInfo, Response};
-use cw_utils::{must_pay, one_coin};
+use cw_utils::must_pay;
 use osmosis_std::types::{
     cosmos::bank::v1beta1::MsgSend,
     osmosis::tokenfactory::v1beta1::{MsgBurn, MsgMint},
@@ -131,6 +131,7 @@ mod test {
     }
 
     #[test]
+    #[should_panic(expected = "uusdc")]
     fn test_delegate_wrong_coin() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -200,6 +201,7 @@ mod test {
     }
 
     #[test]
+    #[should_panic(expected = "uusdc")]
     fn test_undelegate_wrong_coin() {
         let mut deps = mock_dependencies();
         let env = mock_env();
