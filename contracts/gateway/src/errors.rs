@@ -29,4 +29,10 @@ pub enum ContractError {
 
     #[error("Pay Error: You must send at least one asset")]
     MustPay {},
+
+    #[error("Withdraw not flushed")]
+    WithdrawNotFlushed {},
+
+    #[error("Unbond not flushed")]
+    UnbondNotFlushed {},
 }

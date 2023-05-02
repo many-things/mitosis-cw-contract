@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Coin};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -13,6 +13,8 @@ pub enum ExecuteMsg {
     ChangeLiquidityManager { new_liquidity_manager: Addr },
     ChangeDenomManager { new_denom_manager: Addr },
     Pause { expires_at: u64 },
+    Send { to: String },
+    Execute { to: Addr, amount: Coin },
     Release {},
 }
 

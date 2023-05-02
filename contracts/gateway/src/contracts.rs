@@ -1,11 +1,13 @@
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
+use cosmwasm_std::{
+    attr, entry_point, BankMsg, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response,
+};
 use cw2::set_contract_version;
 use mitosis_interface::gateway::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 use crate::{
     errors::ContractError,
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_SUCCESS,
-    state::{DENOM_MANAGER, LIQUIDITY_MANAGER, OWNER},
+    state::{context::WITHDRAW, DENOM_MANAGER, LIQUIDITY_MANAGER, OWNER},
     CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -34,7 +36,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    use crate::execute::{gov, managers, rbac};
+    use crate::execute::{gov, managers, operation, rbac};
 
     match msg {
         ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
@@ -44,6 +46,8 @@ pub fn execute(
         ExecuteMsg::ChangeDenomManager { new_denom_manager } => {
             managers::change_denom_manager(deps, env, info, new_denom_manager)
         }
+        ExecuteMsg::Send { to } => operation::send(deps, env, info, to),
+        ExecuteMsg::Execute { to, amount } => operation::execute(deps, env, info, to, amount),
         ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
         ExecuteMsg::Release {} => gov::release(deps, env, info),
     }
@@ -58,9 +62,18 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, 
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractError> {
     match msg.id {
         REPLY_WITHDRAW_SUBMESSAGE_SUCCESS => {
-            let conv_msg = msg.result.unwrap().data.unwrap();
+            let withdraw_context = WITHDRAW.load(deps.storage)?;
 
-            let resp = Response::new();
+            let send_msg = BankMsg::Send {
+                to_address: withdraw_context.to_address.clone().into_string(),
+                amount: vec![withdraw_context.amount.clone()],
+            };
+
+            let resp = Response::new().add_message(send_msg).add_attributes(vec![
+                attr("action", "reply_withdraw"),
+                attr("to", withdraw_context.to_address),
+                attr("amount", withdraw_context.amount.to_string()),
+            ]);
             Ok(resp)
         }
         id => Err(ContractError::ReplyIdNotFound { id }),

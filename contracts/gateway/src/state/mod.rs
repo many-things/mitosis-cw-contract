@@ -1,3 +1,5 @@
+pub mod context;
+
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Env, StdResult, Storage};
 use cw_storage_plus::Item;

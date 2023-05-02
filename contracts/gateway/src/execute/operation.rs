@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    attr, to_binary, Addr, Coin, Deps, Env, MessageInfo, Response, SubMsg, WasmMsg,
+    attr, to_binary, Addr, Coin, DepsMut, Env, MessageInfo, Response, SubMsg, WasmMsg,
 };
 use mitosis_interface::liquidity_manager;
 
@@ -11,20 +11,14 @@ use crate::{
 use super::consts::REPLY_WITHDRAW_SUBMESSAGE_SUCCESS;
 
 pub fn send(
-    deps: Deps,
+    deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    to: Option<Addr>,
+    to: String,
 ) -> Result<Response, ContractError> {
     if info.funds.is_empty() {
         return Err(ContractError::MustPay {});
     }
-
-    // TODO: can be weakness point
-    let depositor = match to {
-        Some(addr) => addr,
-        None => info.sender.clone(),
-    };
 
     let msg = liquidity_manager::ExecuteMsg::Deposit {
         depositor: Some(env.contract.address),
@@ -43,13 +37,14 @@ pub fn send(
             attr("action", "send"),
             attr("executor", info.sender),
             attr("assets", deposit_attributes),
+            attr("to", to),
         ]);
     Ok(resp)
 }
 
-pub fn receive(
-    deps: Deps,
-    _env: Env,
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     to: Addr,
     amount: Coin,
@@ -59,7 +54,7 @@ pub fn receive(
 
     let lmgr = LIQUIDITY_MANAGER.load(deps.storage)?;
     let liquidity_msg = liquidity_manager::ExecuteMsg::Withdraw {
-        withdrawer: Some(info.sender.clone()),
+        withdrawer: Some(env.contract.address),
         amount,
     };
 
@@ -94,41 +89,43 @@ mod test {
 
     #[test]
     fn test_not_send_assets() {
-        let deps = mock_dependencies();
+        let mut deps = mock_dependencies();
         let env = mock_env();
 
         let addr = Addr::unchecked(ADDR1);
         let info = mock_info(addr.as_str(), &[]);
 
-        let not_send_asset_err = send(deps.as_ref(), env, info, None).unwrap_err();
+        let not_send_asset_err = send(deps.as_mut(), env, info, String::from(ADDR2)).unwrap_err();
         assert!(matches!(not_send_asset_err, ContractError::MustPay {}))
     }
 
     #[test]
-    fn test_single_asset_to_sender() {
+    fn test_send_single_asset() {
         let mut deps = mock_dependencies();
         let env = mock_env();
 
         let addr = Addr::unchecked(ADDR1);
         let contract = Addr::unchecked("contract");
         let info = mock_info(addr.as_str(), &coins(200000, "uosmo"));
+        let to = String::from(ADDR2);
 
         LIQUIDITY_MANAGER
             .save(deps.as_mut().storage, &contract)
             .unwrap();
 
-        let result = send(deps.as_ref(), env, info.clone(), None).unwrap();
+        let result = send(deps.as_mut(), env.clone(), info.clone(), to.clone()).unwrap();
         assert_eq!(
             result.attributes,
             vec![
                 attr("action", "send"),
-                attr("executor", addr.clone()),
-                attr("assets", serde_json::to_string(&info.funds).unwrap())
+                attr("executor", addr),
+                attr("assets", serde_json::to_string(&info.funds).unwrap()),
+                attr("to", to)
             ]
         );
 
         let msg = liquidity_manager::ExecuteMsg::Deposit {
-            depositor: Some(addr),
+            depositor: Some(env.contract.address),
         };
         assert_eq!(
             result.messages,
@@ -141,44 +138,7 @@ mod test {
     }
 
     #[test]
-    fn test_single_asset_to_other() {
-        let mut deps = mock_dependencies();
-        let env = mock_env();
-
-        let sender = Addr::unchecked(ADDR1);
-        let receiver = Addr::unchecked(ADDR2);
-        let contract = Addr::unchecked("contract");
-        let info = mock_info(sender.as_str(), &coins(200000, "uosmo"));
-
-        LIQUIDITY_MANAGER
-            .save(deps.as_mut().storage, &contract)
-            .unwrap();
-
-        let result = send(deps.as_ref(), env, info.clone(), Some(receiver.clone())).unwrap();
-        assert_eq!(
-            result.attributes,
-            vec![
-                attr("action", "send"),
-                attr("executor", sender),
-                attr("assets", serde_json::to_string(&info.funds).unwrap())
-            ]
-        );
-
-        let msg = liquidity_manager::ExecuteMsg::Deposit {
-            depositor: Some(receiver),
-        };
-        assert_eq!(
-            result.messages,
-            vec![SubMsg::new(WasmMsg::Execute {
-                contract_addr: contract.into_string(),
-                msg: to_binary(&msg).unwrap(),
-                funds: info.funds,
-            })]
-        )
-    }
-
-    #[test]
-    fn test_multiple_asset_to_sender() {
+    fn test_send_multiple_assets() {
         let mut deps = mock_dependencies();
         let env = mock_env();
 
@@ -188,63 +148,25 @@ mod test {
             sender.as_str(),
             &[coin(200000, "uosmo"), coin(100000, "uusdc")],
         );
+        let to = String::from(ADDR2);
 
         LIQUIDITY_MANAGER
             .save(deps.as_mut().storage, &contract)
             .unwrap();
 
-        let result = send(deps.as_ref(), env, info.clone(), None).unwrap();
-        assert_eq!(
-            result.attributes,
-            vec![
-                attr("action", "send"),
-                attr("executor", sender.clone()),
-                attr("assets", serde_json::to_string(&info.funds).unwrap())
-            ]
-        );
-
-        let msg = liquidity_manager::ExecuteMsg::Deposit {
-            depositor: Some(sender),
-        };
-        assert_eq!(
-            result.messages,
-            vec![SubMsg::new(WasmMsg::Execute {
-                contract_addr: contract.into_string(),
-                msg: to_binary(&msg).unwrap(),
-                funds: info.funds,
-            })]
-        )
-    }
-
-    #[test]
-    fn test_multiple_asset_to_other() {
-        let mut deps = mock_dependencies();
-        let env = mock_env();
-
-        let sender = Addr::unchecked(ADDR1);
-        let receiver = Addr::unchecked(ADDR2);
-        let contract = Addr::unchecked("contract");
-        let info = mock_info(
-            sender.as_str(),
-            &[coin(200000, "uosmo"), coin(100000, "uusdc")],
-        );
-
-        LIQUIDITY_MANAGER
-            .save(deps.as_mut().storage, &contract)
-            .unwrap();
-
-        let result = send(deps.as_ref(), env, info.clone(), Some(receiver.clone())).unwrap();
+        let result = send(deps.as_mut(), env.clone(), info.clone(), to.clone()).unwrap();
         assert_eq!(
             result.attributes,
             vec![
                 attr("action", "send"),
                 attr("executor", sender),
-                attr("assets", serde_json::to_string(&info.funds).unwrap())
+                attr("assets", serde_json::to_string(&info.funds).unwrap()),
+                attr("to", to),
             ]
         );
 
         let msg = liquidity_manager::ExecuteMsg::Deposit {
-            depositor: Some(receiver),
+            depositor: Some(env.contract.address),
         };
         assert_eq!(
             result.messages,

@@ -44,10 +44,4 @@ pub enum ContractError {
 
     #[error("Unbonding not finished")]
     UnbondingNotFinished {},
-
-    #[error("Withdraw not flushed")]
-    WithdrawNotFlushed {},
-
-    #[error("Unbond not flushed")]
-    UnbondNotFlushed {},
 }
