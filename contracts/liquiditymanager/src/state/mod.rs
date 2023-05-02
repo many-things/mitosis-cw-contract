@@ -1,5 +1,6 @@
 pub mod balances;
 pub mod bond;
+pub mod context;
 pub mod rbac;
 
 use cosmwasm_schema::cw_serde;

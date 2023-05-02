@@ -163,10 +163,7 @@ pub fn query_unbonds_by_owner(storage: &dyn Storage, bonder: Addr) -> StdResult<
 
 #[cfg(test)]
 mod test {
-    use cosmwasm_std::{
-        testing::mock_env,
-        testing::{mock_info, MockStorage},
-    };
+    use cosmwasm_std::{testing::mock_env, testing::MockStorage};
 
     use crate::state::ConfigInfo;
 
@@ -204,7 +201,7 @@ mod test {
     #[test]
     fn test_initialize_bond() {
         let bonder = Addr::unchecked(ADDR1_VALUE);
-        let mut storage = MockStorage::new();
+        let mut storage: cosmwasm_std::MemoryStorage = MockStorage::new();
         let env = mock_env();
 
         let result = bond(&mut storage, env, bonder.clone(), Uint128::new(100000)).unwrap();

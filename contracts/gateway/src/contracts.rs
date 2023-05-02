@@ -1,9 +1,10 @@
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response};
 use cw2::set_contract_version;
 use mitosis_interface::gateway::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 use crate::{
     errors::ContractError,
+    execute::consts::REPLY_WITHDRAW_SUBMESSAGE_SUCCESS,
     state::{DENOM_MANAGER, LIQUIDITY_MANAGER, OWNER},
     CONTRACT_NAME, CONTRACT_VERSION,
 };
@@ -51,6 +52,19 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
     Ok(Response::default())
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractError> {
+    match msg.id {
+        REPLY_WITHDRAW_SUBMESSAGE_SUCCESS => {
+            let conv_msg = msg.result.unwrap().data.unwrap();
+
+            let resp = Response::new();
+            Ok(resp)
+        }
+        id => Err(ContractError::ReplyIdNotFound { id }),
+    }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

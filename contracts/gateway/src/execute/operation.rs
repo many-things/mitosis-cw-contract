@@ -1,4 +1,6 @@
-use cosmwasm_std::{attr, to_binary, Addr, Coin, Deps, Env, MessageInfo, Response, WasmMsg};
+use cosmwasm_std::{
+    attr, to_binary, Addr, Coin, Deps, Env, MessageInfo, Response, SubMsg, WasmMsg,
+};
 use mitosis_interface::liquidity_manager;
 
 use crate::{
@@ -6,9 +8,11 @@ use crate::{
     state::{assert_owned, LIQUIDITY_MANAGER},
 };
 
+use super::consts::REPLY_WITHDRAW_SUBMESSAGE_SUCCESS;
+
 pub fn send(
     deps: Deps,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     to: Option<Addr>,
 ) -> Result<Response, ContractError> {
@@ -16,13 +20,14 @@ pub fn send(
         return Err(ContractError::MustPay {});
     }
 
+    // TODO: can be weakness point
     let depositor = match to {
         Some(addr) => addr,
         None => info.sender.clone(),
     };
 
     let msg = liquidity_manager::ExecuteMsg::Deposit {
-        depositor: Some(depositor),
+        depositor: Some(env.contract.address),
     };
 
     let lmgr = LIQUIDITY_MANAGER.load(deps.storage)?;
@@ -46,19 +51,33 @@ pub fn receive(
     deps: Deps,
     _env: Env,
     info: MessageInfo,
-    _to: Addr,
+    to: Addr,
     amount: Coin,
 ) -> Result<Response, ContractError> {
     // Relayer call this method. To withdraw asset from liquidity manager.
     assert_owned(deps.storage, info.sender.clone())?;
 
-    let msg = liquidity_manager::ExecuteMsg::Withdraw {
-        withdrawer: Some(info.sender),
+    let lmgr = LIQUIDITY_MANAGER.load(deps.storage)?;
+    let liquidity_msg = liquidity_manager::ExecuteMsg::Withdraw {
+        withdrawer: Some(info.sender.clone()),
         amount,
     };
 
-    let response = Response::new();
-    Ok(response)
+    let msg = WasmMsg::Execute {
+        contract_addr: lmgr.into_string(),
+        msg: to_binary(&liquidity_msg)?,
+        funds: vec![],
+    };
+
+    let submessage = SubMsg::reply_on_success(msg, REPLY_WITHDRAW_SUBMESSAGE_SUCCESS);
+
+    Ok(Response::new()
+        .add_submessage(submessage)
+        .add_attributes(vec![
+            attr("action", "receive"),
+            attr("executor", info.sender),
+            attr("receiver", to),
+        ]))
 }
 
 #[cfg(test)]
