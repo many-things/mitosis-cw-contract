@@ -9,7 +9,7 @@ use crate::{
         balances::inquiry_balance,
         bond::{query_bond, query_unbond, query_unbonds_by_owner},
         rbac::OWNER,
-        ConfigInfo, CONFIG, PAUSED,
+        ConfigInfo, DenomInfo, CONFIG, DENOM, PAUSED,
     },
     ContractError,
 };
@@ -17,10 +17,13 @@ use crate::{
 pub fn get_config(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError> {
     let owner = OWNER.load(deps.storage)?;
     let config: ConfigInfo = CONFIG.load(deps.storage)?;
+    let denom: DenomInfo = DENOM.load(deps.storage)?;
 
     Ok(to_binary(&ConfigResponse {
         owner,
         unbonding_period: config.unbonding_period,
+        denom: denom.denom,
+        lp_denom: denom.lp_denom,
     })?)
 }
 

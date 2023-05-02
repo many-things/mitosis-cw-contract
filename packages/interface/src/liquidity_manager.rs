@@ -76,6 +76,8 @@ pub enum QueryMsg {
 pub struct ConfigResponse {
     pub owner: Addr,
     pub unbonding_period: u64,
+    pub denom: String,
+    pub lp_denom: String,
 }
 
 #[cw_serde]

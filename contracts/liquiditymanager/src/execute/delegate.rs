@@ -18,7 +18,8 @@ pub fn delegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         .assert_not_paused()?;
 
     let denom: DenomInfo = DENOM.load(deps.storage)?;
-    let balance = must_pay(&info, &denom.denom).unwrap();
+    let balance = must_pay(&info, &denom.denom)
+        .map_err(|_| ContractError::DenomNotFound { denom: denom.denom })?;
 
     let lp_amount = coin(balance.into(), denom.lp_denom);
 
@@ -49,7 +50,9 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
         .assert_not_paused()?;
 
     let denom: DenomInfo = DENOM.load(deps.storage)?;
-    let balance = must_pay(&info, &denom.lp_denom).unwrap();
+    let balance = must_pay(&info, &denom.lp_denom).map_err(|_| ContractError::DenomNotFound {
+        denom: denom.lp_denom.clone(),
+    })?;
     let burn_message: CosmosMsg = MsgBurn {
         sender: env.clone().contract.address.into_string(),
         amount: Some(coin(balance.into(), denom.lp_denom).into()),
@@ -131,7 +134,6 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "uusdc")]
     fn test_delegate_wrong_coin() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -141,7 +143,9 @@ mod test {
         let info = mock_info(addr.as_str(), &[coin(200000, "uosmo")]);
 
         resume(deps.as_mut().storage, env.block.time.seconds());
-        delegate(deps.as_mut(), env, info).unwrap();
+        let response = delegate(deps.as_mut(), env, info).unwrap_err();
+
+        assert!(matches!(response, ContractError::DenomNotFound { .. }))
     }
 
     #[test]
@@ -196,7 +200,6 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "factory/cosmos2contract/uusdc")]
     fn test_undelegate_wrong_coin() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -208,10 +211,7 @@ mod test {
         resume(deps.as_mut().storage, env.block.time.seconds());
 
         let response = undelegate(deps.as_mut(), env, info).unwrap_err();
-        assert!(matches!(
-            response,
-            ContractError::DelegateAssetNotMatches {}
-        ))
+        assert!(matches!(response, ContractError::DenomNotFound { .. }))
     }
 
     #[test]

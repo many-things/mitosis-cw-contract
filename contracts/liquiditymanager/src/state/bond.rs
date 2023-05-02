@@ -24,7 +24,7 @@ pub struct UnbondInfo {
     pub unbond_id: u64,
     pub owner: Addr,
     pub amount: Uint128,
-    pub unbond_time: u64,
+    pub unbond_time: u64, // expected unbond time
 }
 
 pub struct UnbondsIndexes<'a> {
@@ -99,6 +99,7 @@ pub fn start_unbond(
 ) -> Result<UnbondInfo, ContractError> {
     let bonds = BONDS.load(storage, bonder.clone())?;
     let current_unbonds = get_unbonds_by_owner(storage, bonder.clone())?;
+    let config = CONFIG.load(storage)?;
 
     let unbond_amount: Uint128 = current_unbonds
         .into_iter()
@@ -117,7 +118,7 @@ pub fn start_unbond(
         unbond_id,
         amount,
         owner: bonder,
-        unbond_time: env.block.time.seconds(),
+        unbond_time: env.block.time.seconds() + config.unbonding_period, // saving expected unbond time.
     };
 
     unbonds().save(storage, unbond_id, &new_unbond)?;
@@ -133,12 +134,11 @@ pub fn finish_unbond(
     unbond_id: u64,
 ) -> Result<UnbondInfo, ContractError> {
     let unbond = unbonds().load(storage, unbond_id)?;
-    let config = CONFIG.load(storage)?;
     let mut bond: BondInfo = BONDS.load(storage, bonder.clone())?;
 
     if unbond.owner != bonder {
         return Err(ContractError::Unauthorized {});
-    } else if unbond.unbond_time + config.unbonding_period > env.block.time.seconds() {
+    } else if unbond.unbond_time > env.block.time.seconds() {
         return Err(ContractError::UnbondingNotFinished {});
     }
 
@@ -231,6 +231,15 @@ mod test {
         let mut storage = MockStorage::new();
         let env = mock_env();
 
+        CONFIG
+            .save(
+                &mut storage,
+                &ConfigInfo {
+                    unbonding_period: 20u64,
+                },
+            )
+            .unwrap();
+
         initialize_bond(&mut storage, bonder.clone(), Uint128::new(100000), 0);
         init_unbonds_id(&mut storage).unwrap();
 
@@ -256,6 +265,15 @@ mod test {
         let bonder = Addr::unchecked(ADDR1_VALUE);
         let mut storage = MockStorage::new();
         let env = mock_env();
+
+        CONFIG
+            .save(
+                &mut storage,
+                &ConfigInfo {
+                    unbonding_period: 20u64,
+                },
+            )
+            .unwrap();
 
         initialize_bond(&mut storage, bonder.clone(), Uint128::new(100000), 0);
         init_unbonds_id(&mut storage).unwrap();
@@ -295,7 +313,7 @@ mod test {
             &mut storage,
             bonder.clone(),
             Uint128::new(40000),
-            env.block.time.seconds(),
+            env.block.time.seconds() + 40u64,
         );
 
         let not_period_unbonding =

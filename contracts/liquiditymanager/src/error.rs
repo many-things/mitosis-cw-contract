@@ -18,6 +18,9 @@ pub enum ContractError {
     #[error("Assets Not Found")]
     AssetNotFound {},
 
+    #[error("Denom not found: {denom:?}")]
+    DenomNotFound { denom: String },
+
     #[error("Deposit Asset {val:?} Not Found")]
     DepositAssetNotFound { val: String },
 
@@ -32,9 +35,6 @@ pub enum ContractError {
 
     #[error("{msg:?}")]
     InvalidArgument { msg: String },
-
-    #[error("Delegate can accept only one kind of asset")]
-    DelegateAssetNotMatches {},
 
     #[error("Insufficient Bond amount")]
     InsufficientBondAmount {},
