@@ -47,12 +47,15 @@ pub fn receive(
     _env: Env,
     info: MessageInfo,
     _to: Addr,
-    _amount: Coin,
+    amount: Coin,
 ) -> Result<Response, ContractError> {
     // Relayer call this method. To withdraw asset from liquidity manager.
-    assert_owned(deps.storage, info.sender)?;
+    assert_owned(deps.storage, info.sender.clone())?;
 
-    let msg = liquidity_manager::ExecuteMsg::Withdraw { withdrawer: (), amount: () }
+    let msg = liquidity_manager::ExecuteMsg::Withdraw {
+        withdrawer: Some(info.sender),
+        amount,
+    };
 
     let response = Response::new();
     Ok(response)
