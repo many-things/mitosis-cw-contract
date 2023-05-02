@@ -1,7 +1,7 @@
 use cosmwasm_std::{attr, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
-    state::{rbac::assert_owned, PAUSED},
+    state::{rbac::assert_owned, CONFIG, PAUSED},
     ContractError,
 };
 
@@ -51,6 +51,26 @@ pub fn release(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
     let response = Response::new().add_attributes(vec![
         attr("action", "release"),
         attr("executor", info.sender),
+    ]);
+
+    Ok(response)
+}
+
+pub fn change_config(
+    deps: DepsMut,
+    info: MessageInfo,
+    unbonding_period: u64,
+) -> Result<Response, ContractError> {
+    assert_owned(deps.storage, info.sender.clone())?;
+
+    let mut config = CONFIG.load(deps.storage)?;
+    config.unbonding_period = unbonding_period;
+    CONFIG.save(deps.storage, &config)?;
+
+    let response = Response::new().add_attributes(vec![
+        attr("action", "change_config"),
+        attr("executor", info.sender),
+        attr("unbonding_period", unbonding_period.to_string()),
     ]);
 
     Ok(response)

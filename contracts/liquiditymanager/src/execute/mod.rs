@@ -1,6 +1,11 @@
+mod deposit;
+mod withdraw;
+
 pub mod consts;
 pub mod delegate;
-pub mod deposit;
 pub mod gov;
+pub mod lp;
 pub mod rbac;
-pub mod withdraw;
+
+pub use deposit::deposit;
+pub use withdraw::withdraw;

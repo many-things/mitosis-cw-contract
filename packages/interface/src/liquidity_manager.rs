@@ -1,10 +1,11 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, Coin};
+use cosmwasm_std::{Addr, Coin, Uint128};
 
 #[cw_serde]
 pub struct InstantiateMsg {
     pub denom: String,
     pub lp_denom: String,
+    pub unbonding_period: u64,
 }
 
 #[cw_serde]
@@ -18,6 +19,13 @@ pub enum ExecuteMsg {
     },
     Delegate {},
     Undelegate {},
+    Bond {},
+    StartUnbond {
+        amount: Uint128,
+    },
+    Unbond {
+        unbond_id: u64,
+    },
     ChangeOwner {
         new_owner: Addr,
     },
@@ -33,6 +41,9 @@ pub enum ExecuteMsg {
         expires_at: u64,
     },
     Release {},
+    ChangeConfig {
+        unbonding_period: u64,
+    },
 }
 
 #[cw_serde]
@@ -50,11 +61,21 @@ pub enum QueryMsg {
 
     #[returns(GetBalanceResponse)]
     GetBalance { depositor: Addr },
+
+    #[returns(GetBondResponse)]
+    GetBond { bonder: Addr },
+
+    #[returns(GetUnbondResponse)]
+    GetUnbond { unbond_id: u64 },
+
+    #[returns(GetUnbondListResponse)]
+    GetUnbondsByOwner { owner: Addr },
 }
 
 #[cw_serde]
 pub struct ConfigResponse {
     pub owner: Addr,
+    pub unbonding_period: u64,
 }
 
 #[cw_serde]
@@ -67,4 +88,23 @@ pub struct PauseInfoResponse {
 pub struct GetBalanceResponse {
     pub depositor: Addr,
     pub assets: Vec<Coin>,
+}
+
+#[cw_serde]
+pub struct GetBondResponse {
+    pub amount: Uint128,
+    pub bond_time: u64,
+}
+
+#[cw_serde]
+pub struct GetUnbondResponse {
+    pub unbond_id: u64,
+    pub owner: Addr,
+    pub amount: Uint128,
+    pub unbond_time: u64,
+}
+
+#[cw_serde]
+pub struct GetUnbondListResponse {
+    pub items: Vec<GetUnbondResponse>,
 }

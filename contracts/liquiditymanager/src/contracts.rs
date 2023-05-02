@@ -8,8 +8,11 @@ use mitosis_interface::liquidity_manager::{ExecuteMsg, InstantiateMsg, MigrateMs
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgCreateDenom, MsgCreateDenomResponse};
 
 use crate::{
-    execute::consts::{REPLY_CREATE_DENOM_SUCCESS, REPLY_WITHDRAW_SUBMESSAGE_FAILURE},
-    state::{rbac::OWNER, DenomInfo, DENOM, PAUSED},
+    execute::{
+        consts::{REPLY_CREATE_DENOM_SUCCESS, REPLY_WITHDRAW_SUBMESSAGE_FAILURE},
+        lp,
+    },
+    state::{bond::init_unbonds_id, rbac::OWNER, DenomInfo, DENOM, PAUSED},
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -30,6 +33,7 @@ pub fn instantiate(
         lp_denom: "".to_string(),
     };
     DENOM.save(deps.storage, &denom)?;
+    init_unbonds_id(deps.storage)?;
 
     // Only consider single asset.
     let msg_create_denom: CosmosMsg = MsgCreateDenom {
@@ -58,7 +62,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    use crate::execute::{delegate, deposit::deposit, gov, rbac, withdraw::withdraw};
+    use crate::execute::{delegate, deposit, gov, rbac, withdraw};
 
     match msg {
         ExecuteMsg::Deposit { depositor } => deposit(deps, env, info, depositor),
@@ -67,11 +71,17 @@ pub fn execute(
         }
         ExecuteMsg::Delegate {} => delegate::delegate(deps, env, info),
         ExecuteMsg::Undelegate {} => delegate::undelegate(deps, env, info),
+        ExecuteMsg::Bond {} => lp::bond_lp(deps, env, info),
+        ExecuteMsg::StartUnbond { amount } => lp::start_unbond_lp(deps, env, info, amount),
+        ExecuteMsg::Unbond { unbond_id } => lp::finish_unbond_lp(deps, env, info, unbond_id),
         ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
         ExecuteMsg::GrantRole { role, addr } => rbac::grant_role(deps, env, info, role, addr),
         ExecuteMsg::RevokeRole { role, addr } => rbac::revoke_role(deps, env, info, role, addr),
         ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
         ExecuteMsg::Release {} => gov::release(deps, env, info),
+        ExecuteMsg::ChangeConfig { unbonding_period } => {
+            gov::change_config(deps, info, unbonding_period)
+        }
     }
 }
 
@@ -103,5 +113,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
         QueryMsg::GetConfig {} => query::get_config(deps, env),
         QueryMsg::PauseInfo {} => query::get_paused_info(deps, env),
         QueryMsg::GetBalance { depositor } => query::get_balance(deps, env, depositor),
+        QueryMsg::GetBond { bonder } => query::get_bonds(deps, bonder),
+        QueryMsg::GetUnbond { unbond_id } => query::get_unbond(deps, unbond_id),
+        QueryMsg::GetUnbondsByOwner { owner } => query::get_unbonds_by_owner(deps, owner),
     }
 }

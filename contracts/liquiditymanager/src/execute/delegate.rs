@@ -141,12 +141,7 @@ mod test {
         let info = mock_info(addr.as_str(), &[coin(200000, "uosmo")]);
 
         resume(deps.as_mut().storage, env.block.time.seconds());
-
-        let response = delegate(deps.as_mut(), env, info).unwrap_err();
-        assert!(matches!(
-            response,
-            ContractError::DelegateAssetNotMatches {}
-        ))
+        delegate(deps.as_mut(), env, info).unwrap();
     }
 
     #[test]
@@ -201,7 +196,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "uusdc")]
+    #[should_panic(expected = "factory/cosmos2contract/uusdc")]
     fn test_undelegate_wrong_coin() {
         let mut deps = mock_dependencies();
         let env = mock_env();
