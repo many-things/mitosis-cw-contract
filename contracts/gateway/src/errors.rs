@@ -15,6 +15,9 @@ pub enum ContractError {
     #[error("Paused")]
     PausedError {},
 
+    #[error("Public key not registered")]
+    PublicKeyNotRegistered {},
+
     #[error("Reply Not Found: {id:?}")]
     ReplyIdNotFound { id: u64 },
 
@@ -35,4 +38,10 @@ pub enum ContractError {
 
     #[error("Unbond not flushed")]
     UnbondNotFlushed {},
+
+    #[error("lengths wrong")]
+    WrongLength {},
+
+    #[error("invalid pub key")]
+    InvalidPubKey {},
 }

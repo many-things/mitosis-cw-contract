@@ -1,9 +1,9 @@
 use cosmwasm_std::{to_binary, Deps, Env, QueryResponse};
-use mitosis_interface::gateway::ConfigResponse;
+use mitosis_interface::gateway::{ConfigResponse, PublicKeyResponse};
 
 use crate::{
     errors::ContractError,
-    state::{DENOM_MANAGER, LIQUIDITY_MANAGER, OWNER},
+    state::{DENOM_MANAGER, LIQUIDITY_MANAGER, OWNER, PUBLIC_KEY},
 };
 
 pub fn get_config(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError> {
@@ -16,4 +16,12 @@ pub fn get_config(deps: Deps, _env: Env) -> Result<QueryResponse, ContractError>
         liquidity_manager,
         denom_manager,
     })?)
+}
+
+pub fn get_public_key(deps: Deps) -> Result<QueryResponse, ContractError> {
+    let public_key = PUBLIC_KEY
+        .load(deps.storage)
+        .map_err(|_| ContractError::PublicKeyNotRegistered {})?;
+
+    Ok(to_binary(&PublicKeyResponse { public_key })?)
 }

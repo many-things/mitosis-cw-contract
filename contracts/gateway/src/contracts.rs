@@ -46,9 +46,16 @@ pub fn execute(
         ExecuteMsg::ChangeDenomManager { new_denom_manager } => {
             managers::change_denom_manager(deps, env, info, new_denom_manager)
         }
-        ExecuteMsg::Send { to } => operation::send(deps, env, info, to),
-        ExecuteMsg::Execute { to, amount } => operation::execute(deps, env, info, to, amount),
+        ExecuteMsg::Send { to, op_id, op_args } => {
+            operation::send(deps, env, info, to, op_id, op_args)
+        }
+        ExecuteMsg::Execute { msgs, signature } => {
+            operation::execute(deps, env, info, msgs, signature)
+        }
         ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
+        ExecuteMsg::ChangePublicKey { public_key } => {
+            gov::change_public_key(deps, info, public_key)
+        }
         ExecuteMsg::Release {} => gov::release(deps, env, info),
     }
 }
@@ -86,5 +93,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
 
     match msg {
         QueryMsg::GetConfig {} => query::get_config(deps, env),
+        QueryMsg::GetPublicKey {} => query::get_public_key(deps),
     }
 }

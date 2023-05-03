@@ -1,8 +1,8 @@
-use cosmwasm_std::{attr, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{attr, DepsMut, Env, HexBinary, MessageInfo, Response};
 
 use crate::{
     errors::ContractError,
-    state::{assert_owned, PAUSED},
+    state::{assert_owned, PAUSED, PUBLIC_KEY},
 };
 
 pub fn pause(
@@ -53,6 +53,23 @@ pub fn release(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
         attr("executor", info.sender),
     ]);
 
+    Ok(response)
+}
+
+pub fn change_public_key(
+    deps: DepsMut,
+    info: MessageInfo,
+    public_key: HexBinary,
+) -> Result<Response, ContractError> {
+    assert_owned(deps.storage, info.sender.clone())?;
+
+    PUBLIC_KEY.save(deps.storage, &public_key)?;
+
+    let response = Response::new().add_attributes(vec![
+        attr("action", "change_public_key"),
+        attr("executor", info.sender),
+        attr("public_key", public_key.to_string()),
+    ]);
     Ok(response)
 }
 
@@ -208,5 +225,40 @@ mod test {
                 attr("executor", owner.to_string()),
             ]
         )
+    }
+
+    #[test]
+    fn test_change_public_key_success() {
+        let mut deps = mock_dependencies();
+        let owner = Addr::unchecked(ADDR1);
+        let info = mock_info(owner.as_str(), &[]);
+
+        mock_owner(deps.as_mut().storage, owner);
+        let public_key = HexBinary::from_hex("ffd265b795c0e3c45f7c362a2bb3b6a7").unwrap();
+
+        let result = change_public_key(deps.as_mut(), info.clone(), public_key.clone()).unwrap();
+
+        assert_eq!(
+            result.attributes,
+            vec![
+                attr("action", "change_public_key"),
+                attr("executor", info.sender),
+                attr("public_key", public_key.to_string()),
+            ]
+        )
+    }
+
+    #[test]
+    fn test_change_public_key_failure() {
+        let mut deps = mock_dependencies();
+        let owner = Addr::unchecked(ADDR1);
+        let not_owner = Addr::unchecked(ADDR2);
+        let info = mock_info(not_owner.as_str(), &[]);
+
+        mock_owner(deps.as_mut().storage, owner);
+        let public_key = HexBinary::from_hex("ffd265b795c0e3c45f7c362a2bb3b6a7").unwrap();
+
+        let result =
+            change_public_key(deps.as_mut(), info.clone(), public_key.clone()).unwrap_err();
     }
 }
