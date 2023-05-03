@@ -1,17 +1,14 @@
 use cosmwasm_std::{
-    attr, to_binary, Addr, Binary, Coin, CosmosMsg, DepsMut, Env, HexBinary, MessageInfo, Response,
-    SubMsg, WasmMsg,
+    attr, to_binary, Binary, CosmosMsg, DepsMut, Env, HexBinary, MessageInfo, Response, WasmMsg,
 };
 use cw_utils::one_coin;
 use mitosis_interface::liquidity_manager;
 
 use crate::{
     errors::ContractError,
-    state::{assert_owned, context::set_withdraw_info, LIQUIDITY_MANAGER, PUBLIC_KEY},
+    state::{assert_owned, LIQUIDITY_MANAGER, PUBLIC_KEY},
     verify::sha256_digest,
 };
-
-use super::consts::REPLY_WITHDRAW_SUBMESSAGE_SUCCESS;
 
 pub fn send(
     deps: DepsMut,

@@ -3,6 +3,7 @@ use cosmwasm_std::{attr, DepsMut, Env, HexBinary, MessageInfo, Response};
 use crate::{
     errors::ContractError,
     state::{assert_owned, PAUSED, PUBLIC_KEY},
+    verify::pub_to_addr,
 };
 
 pub fn pause(
@@ -62,6 +63,12 @@ pub fn change_public_key(
     public_key: HexBinary,
 ) -> Result<Response, ContractError> {
     assert_owned(deps.storage, info.sender.clone())?;
+
+    let public_key_addr = pub_to_addr(public_key.clone().into(), "osmo")?;
+
+    if public_key_addr != info.sender {
+        return Err(ContractError::InvalidPubKey {});
+    }
 
     PUBLIC_KEY.save(deps.storage, &public_key)?;
 
@@ -230,7 +237,7 @@ mod test {
     #[test]
     fn test_change_public_key_success() {
         let mut deps = mock_dependencies();
-        let owner = Addr::unchecked(ADDR1);
+        let owner = Addr::unchecked("osmo134s3q9c56t93v96aksveuk9lp8ngljlnlupphd");
         let info = mock_info(owner.as_str(), &[]);
 
         mock_owner(deps.as_mut().storage, owner);
@@ -255,10 +262,16 @@ mod test {
         let not_owner = Addr::unchecked(ADDR2);
         let info = mock_info(not_owner.as_str(), &[]);
 
-        mock_owner(deps.as_mut().storage, owner);
+        mock_owner(deps.as_mut().storage, owner.clone());
         let public_key = HexBinary::from_hex("ffd265b795c0e3c45f7c362a2bb3b6a7").unwrap();
 
-        let result =
-            change_public_key(deps.as_mut(), info.clone(), public_key.clone()).unwrap_err();
+        let result = change_public_key(deps.as_mut(), info, public_key.clone()).unwrap_err();
+        assert!(matches!(result, ContractError::Unauthorized {}));
+
+        // right owner but wrong pubkey
+        let right_user_info: MessageInfo = mock_info(owner.as_str(), &[]);
+        let result: ContractError =
+            change_public_key(deps.as_mut(), right_user_info, public_key).unwrap_err();
+        assert!(matches!(result, ContractError::InvalidPubKey {}))
     }
 }
