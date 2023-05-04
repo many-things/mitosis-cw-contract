@@ -241,7 +241,10 @@ mod test {
         let info = mock_info(owner.as_str(), &[]);
 
         mock_owner(deps.as_mut().storage, owner);
-        let public_key = HexBinary::from_hex("ffd265b795c0e3c45f7c362a2bb3b6a7").unwrap();
+        let public_key = HexBinary::from(vec![
+            2, 191, 219, 148, 192, 213, 90, 105, 81, 110, 121, 164, 102, 210, 194, 26, 140, 10, 19,
+            2, 139, 176, 7, 14, 221, 13, 10, 7, 195, 19, 186, 83, 238,
+        ]);
 
         let result = change_public_key(deps.as_mut(), info.clone(), public_key.clone()).unwrap();
 
