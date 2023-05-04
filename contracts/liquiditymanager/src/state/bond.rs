@@ -42,7 +42,7 @@ impl<'a> IndexList<UnbondInfo> for UnbondsIndexes<'a> {
 
 pub fn unbonds<'a>() -> IndexedMap<'a, u64, UnbondInfo, UnbondsIndexes<'a>> {
     let indexes = UnbondsIndexes {
-        owner: MultiIndex::new(|u| u.owner.clone(), UNBONDS_KEY, "UNBOND_OWNER"),
+        owner: MultiIndex::new(|_, u| u.owner.clone(), UNBONDS_KEY, "UNBOND_OWNER"),
     };
 
     IndexedMap::new(UNBONDS_KEY, indexes)
