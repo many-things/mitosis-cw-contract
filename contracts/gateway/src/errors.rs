@@ -15,6 +15,9 @@ pub enum ContractError {
     #[error("Paused")]
     PausedError {},
 
+    #[error("Public key not registered")]
+    PublicKeyNotRegistered {},
+
     #[error("Reply Not Found: {id:?}")]
     ReplyIdNotFound { id: u64 },
 
@@ -27,6 +30,18 @@ pub enum ContractError {
     #[error("{msg:?}")]
     InvalidArgument { msg: String },
 
-    #[error("Pay Error: You must send at least one asset")]
-    MustPay {},
+    #[error("Pay Error: You must send one asset")]
+    MustPayOne {},
+
+    #[error("Withdraw not flushed")]
+    WithdrawNotFlushed {},
+
+    #[error("Unbond not flushed")]
+    UnbondNotFlushed {},
+
+    #[error("lengths wrong")]
+    WrongLength {},
+
+    #[error("invalid pub key")]
+    InvalidPubKey {},
 }

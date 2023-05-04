@@ -19,6 +19,7 @@ pub fn withdraw(
 
     assert_owned(deps.storage, info.sender.clone())?;
 
+    // TODO: can be weakness point
     let withdrawer = match withdrawer {
         Some(withdrawer) => withdrawer,
         None => info.sender.clone(),

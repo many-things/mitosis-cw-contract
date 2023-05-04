@@ -1,5 +1,7 @@
+pub mod context;
+
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Env, StdResult, Storage};
+use cosmwasm_std::{Addr, Env, HexBinary, StdResult, Storage};
 use cw_storage_plus::Item;
 
 use crate::errors::ContractError;
@@ -15,6 +17,9 @@ pub const LIQUIDITY_MANAGER: Item<Addr> = Item::new(LIQUIDITY_MANAGER_KEY);
 
 pub const DENOM_MANAGER_KEY: &str = "denom_manager";
 pub const DENOM_MANAGER: Item<Addr> = Item::new(DENOM_MANAGER_KEY);
+
+pub const PUBLIC_KEY_KEY: &str = "public_key";
+pub const PUBLIC_KEY: Item<HexBinary> = Item::new(PUBLIC_KEY_KEY);
 
 #[cw_serde]
 #[derive(Default)]

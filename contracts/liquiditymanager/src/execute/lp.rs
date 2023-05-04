@@ -17,12 +17,14 @@ pub fn bond_lp(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
         .assert_not_paused()?;
 
     let denom: DenomInfo = DENOM.load(deps.storage)?;
-    let balance = must_pay(&info, &denom.lp_denom).unwrap();
+    let balance = must_pay(&info, &denom.lp_denom).map_err(|_| ContractError::DenomNotFound {
+        denom: denom.lp_denom.clone(),
+    })?;
 
     let bond_info = bond::bond(deps.storage, env, info.sender.clone(), balance)?;
 
     let respnose = Response::new().add_attributes(vec![
-        attr("action", "bond_lp"),
+        attr("action", "bond"),
         attr("executor", info.sender),
         attr("amount", bond_info.amount),
     ]);
@@ -44,7 +46,7 @@ pub fn start_unbond_lp(
     let unbond_info = bond::start_unbond(deps.storage, env, info.sender.clone(), amount)?;
 
     let response = Response::new().add_attributes(vec![
-        attr("action", "start_unbond_lp"),
+        attr("action", "start_unbond"),
         attr("executor", info.sender),
         attr("unbond_id", unbond_info.unbond_id.to_string()),
         attr("amount", unbond_info.amount),
@@ -77,7 +79,7 @@ pub fn finish_unbond_lp(
     .into();
 
     let response = Response::new().add_message(message).add_attributes(vec![
-        attr("action", "finish_unbond_lp"),
+        attr("action", "finish_unbond"),
         attr("executor", info.sender),
         attr("unbond_id", unbond_info.unbond_id.to_string()),
         attr("amount", unbond_info.amount),
