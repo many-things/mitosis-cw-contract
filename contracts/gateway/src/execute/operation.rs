@@ -79,152 +79,193 @@ pub fn execute(
     Ok(resp)
 }
 
-// #[cfg(test)]
-// mod test {
-//     use crate::state::OWNER;
+#[cfg(test)]
+mod test {
+    use crate::state::OWNER;
 
-//     use super::*;
-//     use cosmwasm_std::{
-//         coin, coins,
-//         testing::{mock_dependencies, mock_env, mock_info},
-//         Addr, SubMsg,
-//     };
+    use super::*;
+    use cosmwasm_std::{
+        coin, coins,
+        testing::{mock_dependencies, mock_env, mock_info},
+        Addr, BankMsg, SubMsg,
+    };
 
-//     const ADDR1: &str = "ADDR1";
-//     const ADDR2: &str = "ADDR2";
+    const ADDR1: &str = "ADDR1";
+    const ADDR2: &str = "ADDR2";
 
-//     #[test]
-//     fn test_not_send_assets() {
-//         let mut deps = mock_dependencies();
-//         let env = mock_env();
+    #[test]
+    fn test_not_send_assets() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
 
-//         let addr = Addr::unchecked(ADDR1);
-//         let info = mock_info(addr.as_str(), &[]);
+        let addr = Addr::unchecked(ADDR1);
+        let info = mock_info(addr.as_str(), &[]);
 
-//         let not_send_asset_err = send(deps.as_mut(), env, info, String::from(ADDR2)).unwrap_err();
-//         assert!(matches!(not_send_asset_err, ContractError::MustPayOne {}))
-//     }
+        let not_send_asset_err =
+            send(deps.as_mut(), env, info, String::from(ADDR2), 1u64, vec![]).unwrap_err();
+        assert!(matches!(not_send_asset_err, ContractError::MustPayOne {}))
+    }
 
-//     #[test]
-//     fn test_send_single_asset() {
-//         let mut deps = mock_dependencies();
-//         let env = mock_env();
+    #[test]
+    fn test_send_single_asset() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
 
-//         let addr = Addr::unchecked(ADDR1);
-//         let contract = Addr::unchecked("contract");
-//         let info = mock_info(addr.as_str(), &coins(200000, "uosmo"));
-//         let to = String::from(ADDR2);
+        let addr = Addr::unchecked(ADDR1);
+        let contract = Addr::unchecked("contract");
+        let info = mock_info(addr.as_str(), &coins(200000, "uosmo"));
+        let to = String::from(ADDR2);
 
-//         LIQUIDITY_MANAGER
-//             .save(deps.as_mut().storage, &contract)
-//             .unwrap();
+        LIQUIDITY_MANAGER
+            .save(deps.as_mut().storage, &contract)
+            .unwrap();
 
-//         let result = send(deps.as_mut(), env.clone(), info.clone(), to.clone()).unwrap();
-//         assert_eq!(
-//             result.attributes,
-//             vec![
-//                 attr("action", "send"),
-//                 attr("executor", addr),
-//                 attr("amount", info.funds[0].to_string()),
-//                 attr("to", to)
-//             ]
-//         );
+        let result = send(
+            deps.as_mut(),
+            env.clone(),
+            info.clone(),
+            to.clone(),
+            1u64,
+            vec![Binary::from(vec![1u8, 2u8])],
+        )
+        .unwrap();
 
-//         let msg = liquidity_manager::ExecuteMsg::Deposit {
-//             depositor: Some(env.contract.address),
-//         };
-//         assert_eq!(
-//             result.messages,
-//             vec![SubMsg::new(WasmMsg::Execute {
-//                 contract_addr: contract.into_string(),
-//                 msg: to_binary(&msg).unwrap(),
-//                 funds: info.funds,
-//             })]
-//         )
-//     }
+        assert_eq!(
+            result.attributes,
+            vec![
+                attr("action", "send"),
+                attr("executor", addr),
+                attr("amount", info.funds[0].to_string()),
+                attr("to", to),
+                attr("op_id", "1"),
+                attr(
+                    "op_args",
+                    serde_json::to_string(&vec![Binary::from(vec![1u8, 2u8])]).unwrap()
+                )
+            ]
+        );
 
-//     #[test]
-//     fn test_send_multiple_assets_failure() {
-//         let mut deps = mock_dependencies();
-//         let env = mock_env();
+        let msg = liquidity_manager::ExecuteMsg::Deposit {
+            depositor: Some(env.contract.address),
+        };
+        assert_eq!(
+            result.messages,
+            vec![SubMsg::new(WasmMsg::Execute {
+                contract_addr: contract.into_string(),
+                msg: to_binary(&msg).unwrap(),
+                funds: info.funds,
+            })]
+        )
+    }
 
-//         let sender = Addr::unchecked(ADDR1);
-//         let contract = Addr::unchecked("contract");
-//         let info = mock_info(
-//             sender.as_str(),
-//             &[coin(200000, "uosmo"), coin(100000, "uusdc")],
-//         );
-//         let to = String::from(ADDR2);
+    #[test]
+    fn test_send_multiple_assets_failure() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
 
-//         LIQUIDITY_MANAGER
-//             .save(deps.as_mut().storage, &contract)
-//             .unwrap();
+        let sender = Addr::unchecked(ADDR1);
+        let contract = Addr::unchecked("contract");
+        let info = mock_info(
+            sender.as_str(),
+            &[coin(200000, "uosmo"), coin(100000, "uusdc")],
+        );
+        let to = String::from(ADDR2);
 
-//         let result = send(deps.as_mut(), env, info, to).unwrap_err();
-//         assert!(matches!(result, ContractError::MustPayOne {}))
-//     }
+        LIQUIDITY_MANAGER
+            .save(deps.as_mut().storage, &contract)
+            .unwrap();
 
-//     #[test]
-//     fn test_execute_not_owned() {
-//         let mut deps = mock_dependencies();
-//         let env = mock_env();
+        let result = send(deps.as_mut(), env, info, to, 1u64, vec![]).unwrap_err();
+        assert!(matches!(result, ContractError::MustPayOne {}))
+    }
 
-//         let owner = Addr::unchecked(ADDR1);
-//         let sender = Addr::unchecked(ADDR2);
+    #[test]
+    fn test_execute_failure() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
 
-//         let info = mock_info(sender.as_str(), &[]);
+        let owner = Addr::unchecked(ADDR1);
+        let sender = Addr::unchecked(ADDR2);
 
-//         OWNER.save(deps.as_mut().storage, &owner).unwrap();
-//         let result = execute(deps.as_mut(), env, info, sender, coin(100000, "uosmo")).unwrap_err();
+        let info = mock_info(sender.as_str(), &[]);
 
-//         assert!(matches!(result, ContractError::Unauthorized {}))
-//     }
+        PUBLIC_KEY
+            .save(deps.as_mut().storage, &HexBinary::from(vec![1u8, 2u8]))
+            .unwrap();
+        OWNER.save(deps.as_mut().storage, &owner).unwrap();
+        let result = execute(
+            deps.as_mut(),
+            env.clone(),
+            info,
+            vec![],
+            HexBinary::from_hex("12").unwrap(),
+        )
+        .unwrap_err();
 
-//     #[test]
-//     fn test_execute_successfully() {
-//         let mut deps = mock_dependencies();
-//         let env = mock_env();
+        assert!(matches!(result, ContractError::Unauthorized {}));
 
-//         let owner = Addr::unchecked(ADDR1);
-//         let info = mock_info(owner.as_str(), &[]);
-//         let contract: Addr = Addr::unchecked("contract");
+        let info = mock_info(owner.as_str(), &[]);
+        let result = execute(
+            deps.as_mut(),
+            env,
+            info,
+            vec![],
+            HexBinary::from_hex("12").unwrap(),
+        )
+        .unwrap_err();
 
-//         OWNER.save(deps.as_mut().storage, &owner).unwrap();
-//         LIQUIDITY_MANAGER
-//             .save(deps.as_mut().storage, &contract)
-//             .unwrap();
-//         let result = execute(
-//             deps.as_mut(),
-//             env.clone(),
-//             info.clone(),
-//             owner.clone(),
-//             coin(100000, "uosmo"),
-//         )
-//         .unwrap();
+        assert!(matches!(result, ContractError::InvalidPubKey {}))
+    }
 
-//         assert_eq!(
-//             result.attributes,
-//             vec![
-//                 attr("action", "execute"),
-//                 attr("executor", owner.clone()),
-//                 attr("receiver", owner)
-//             ]
-//         );
+    #[test]
+    fn test_execute_successfully() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
 
-//         let msg = liquidity_manager::ExecuteMsg::Withdraw {
-//             withdrawer: Some(env.contract.address),
-//             amount: coin(100000, "uosmo"),
-//         };
-//         assert_eq!(
-//             result.messages,
-//             vec![SubMsg::reply_on_success(
-//                 WasmMsg::Execute {
-//                     contract_addr: contract.into_string(),
-//                     msg: to_binary(&msg).unwrap(),
-//                     funds: info.funds,
-//                 },
-//                 REPLY_WITHDRAW_SUBMESSAGE_SUCCESS
-//             )]
-//         )
-//     }
-// }
+        let owner = Addr::unchecked(ADDR1);
+        let info = mock_info(owner.as_str(), &[]);
+        let contract: Addr = Addr::unchecked("contract");
+        let public_key = HexBinary::from(vec![
+            2, 191, 219, 148, 192, 213, 90, 105, 81, 110, 121, 164, 102, 210, 194, 26, 140, 10, 19,
+            2, 139, 176, 7, 14, 221, 13, 10, 7, 195, 19, 186, 83, 238,
+        ]);
+
+        OWNER.save(deps.as_mut().storage, &owner).unwrap();
+        LIQUIDITY_MANAGER
+            .save(deps.as_mut().storage, &contract)
+            .unwrap();
+        PUBLIC_KEY.save(deps.as_mut().storage, &public_key).unwrap();
+
+        let msgs: Vec<CosmosMsg> = vec![BankMsg::Send {
+            to_address: owner.to_string(),
+            amount: coins(100000, "uosmo"),
+        }
+        .into()];
+
+        let result = execute(
+            deps.as_mut(),
+            env,
+            info,
+            msgs,
+            HexBinary::from(vec![
+                245, 203, 35, 74, 190, 205, 192, 228, 239, 109, 138, 172, 195, 248, 157, 251, 142,
+                80, 76, 247, 112, 108, 193, 156, 235, 191, 2, 26, 29, 49, 146, 83, 113, 7, 13, 45,
+                130, 54, 230, 228, 81, 193, 132, 88, 49, 202, 195, 198, 46, 13, 152, 54, 178, 68,
+                151, 170, 97, 88, 240, 183, 245, 51, 243, 164,
+            ]),
+        )
+        .unwrap();
+
+        assert_eq!(
+            result.attributes,
+            vec![attr("action", "execute"), attr("executor", owner.clone()),]
+        );
+        assert_eq!(
+            result.messages,
+            vec![SubMsg::new(BankMsg::Send {
+                to_address: owner.to_string(),
+                amount: coins(100000, "uosmo"),
+            })]
+        )
+    }
+}
