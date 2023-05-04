@@ -12,7 +12,7 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     ChangeOwner {
         new_owner: Addr,
-        public_key: HexBinary,
+        new_public_key: HexBinary,
     },
     ChangeLiquidityManager {
         new_liquidity_manager: Addr,

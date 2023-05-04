@@ -49,8 +49,8 @@ pub fn execute(
     match msg {
         ExecuteMsg::ChangeOwner {
             new_owner,
-            public_key,
-        } => rbac::change_owner(deps, env, info, new_owner, public_key),
+            new_public_key,
+        } => rbac::change_owner(deps, env, info, new_owner, new_public_key),
         ExecuteMsg::ChangeLiquidityManager {
             new_liquidity_manager,
         } => managers::change_liquidity_manager(deps, env, info, new_liquidity_manager),

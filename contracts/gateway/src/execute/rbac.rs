@@ -33,6 +33,7 @@ pub fn change_owner(
         attr("action", "change_owner"),
         attr("executor", info.sender),
         attr("new_owner", new_owner),
+        attr("new_public_key", new_pubkey.to_hex()),
     ]);
 
     Ok(response)
@@ -130,14 +131,21 @@ mod test {
         resume(deps.as_mut().storage, env.block.time.seconds());
         mock_owner(deps.as_mut().storage, owner.clone());
 
-        let changed_owner =
-            change_owner(deps.as_mut(), env, info, new_owner.clone(), public_key).unwrap();
+        let changed_owner = change_owner(
+            deps.as_mut(),
+            env,
+            info,
+            new_owner.clone(),
+            public_key.clone(),
+        )
+        .unwrap();
         assert_eq!(
             changed_owner.attributes,
             vec![
                 attr("action", "change_owner"),
                 attr("executor", owner.as_str()),
-                attr("new_owner", new_owner.as_str())
+                attr("new_owner", new_owner.as_str()),
+                attr("new_public_key", public_key.to_hex()),
             ]
         );
     }
@@ -156,10 +164,10 @@ mod test {
         ]);
 
         resume(deps.as_mut().storage, env.block.time.seconds());
-        mock_owner(deps.as_mut().storage, owner.clone());
+        mock_owner(deps.as_mut().storage, owner);
 
         let changed_owner =
-            change_owner(deps.as_mut(), env, info, new_owner.clone(), public_key).unwrap_err();
+            change_owner(deps.as_mut(), env, info, new_owner, public_key).unwrap_err();
         assert!(matches!(changed_owner, ContractError::InvalidPubKey {}))
     }
 }
