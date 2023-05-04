@@ -5,21 +5,20 @@ use cosmwasm_std::{Addr, Binary, CosmosMsg, HexBinary};
 pub struct InstantiateMsg {
     pub liquidity_manager: Addr,
     pub denom_manager: Addr,
+    pub public_key: HexBinary,
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
     ChangeOwner {
         new_owner: Addr,
+        public_key: HexBinary,
     },
     ChangeLiquidityManager {
         new_liquidity_manager: Addr,
     },
     ChangeDenomManager {
         new_denom_manager: Addr,
-    },
-    ChangePublicKey {
-        public_key: HexBinary,
     },
     Pause {
         expires_at: u64,
@@ -44,9 +43,6 @@ pub enum MigrateMsg {}
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
     GetConfig {},
-
-    #[returns(PublicKeyResponse)]
-    GetPublicKey {},
 }
 
 #[cw_serde]
@@ -54,9 +50,5 @@ pub struct ConfigResponse {
     pub owner: Addr,
     pub liquidity_manager: Addr,
     pub denom_manager: Addr,
-}
-
-#[cw_serde]
-pub struct PublicKeyResponse {
     pub public_key: HexBinary,
 }

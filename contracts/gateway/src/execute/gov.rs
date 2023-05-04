@@ -1,9 +1,8 @@
-use cosmwasm_std::{attr, DepsMut, Env, HexBinary, MessageInfo, Response};
+use cosmwasm_std::{attr, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     errors::ContractError,
-    state::{assert_owned, PAUSED, PUBLIC_KEY},
-    verify::pub_to_addr,
+    state::{assert_owned, PAUSED},
 };
 
 pub fn pause(
@@ -54,29 +53,6 @@ pub fn release(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
         attr("executor", info.sender),
     ]);
 
-    Ok(response)
-}
-
-pub fn change_public_key(
-    deps: DepsMut,
-    info: MessageInfo,
-    public_key: HexBinary,
-) -> Result<Response, ContractError> {
-    assert_owned(deps.storage, info.sender.clone())?;
-
-    let public_key_addr = pub_to_addr(public_key.clone().into(), "osmo")?;
-
-    if public_key_addr != info.sender {
-        return Err(ContractError::InvalidPubKey {});
-    }
-
-    PUBLIC_KEY.save(deps.storage, &public_key)?;
-
-    let response = Response::new().add_attributes(vec![
-        attr("action", "change_public_key"),
-        attr("executor", info.sender),
-        attr("public_key", public_key.to_string()),
-    ]);
     Ok(response)
 }
 
@@ -232,49 +208,5 @@ mod test {
                 attr("executor", owner.to_string()),
             ]
         )
-    }
-
-    #[test]
-    fn test_change_public_key_success() {
-        let mut deps = mock_dependencies();
-        let owner = Addr::unchecked("osmo134s3q9c56t93v96aksveuk9lp8ngljlnlupphd");
-        let info = mock_info(owner.as_str(), &[]);
-
-        mock_owner(deps.as_mut().storage, owner);
-        let public_key = HexBinary::from(vec![
-            2, 191, 219, 148, 192, 213, 90, 105, 81, 110, 121, 164, 102, 210, 194, 26, 140, 10, 19,
-            2, 139, 176, 7, 14, 221, 13, 10, 7, 195, 19, 186, 83, 238,
-        ]);
-
-        let result = change_public_key(deps.as_mut(), info.clone(), public_key.clone()).unwrap();
-
-        assert_eq!(
-            result.attributes,
-            vec![
-                attr("action", "change_public_key"),
-                attr("executor", info.sender),
-                attr("public_key", public_key.to_string()),
-            ]
-        )
-    }
-
-    #[test]
-    fn test_change_public_key_failure() {
-        let mut deps = mock_dependencies();
-        let owner = Addr::unchecked(ADDR1);
-        let not_owner = Addr::unchecked(ADDR2);
-        let info = mock_info(not_owner.as_str(), &[]);
-
-        mock_owner(deps.as_mut().storage, owner.clone());
-        let public_key = HexBinary::from_hex("ffd265b795c0e3c45f7c362a2bb3b6a7").unwrap();
-
-        let result = change_public_key(deps.as_mut(), info, public_key.clone()).unwrap_err();
-        assert!(matches!(result, ContractError::Unauthorized {}));
-
-        // right owner but wrong pubkey
-        let right_user_info: MessageInfo = mock_info(owner.as_str(), &[]);
-        let result: ContractError =
-            change_public_key(deps.as_mut(), right_user_info, public_key).unwrap_err();
-        assert!(matches!(result, ContractError::InvalidPubKey {}))
     }
 }

@@ -7,7 +7,8 @@ use mitosis_interface::gateway::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMs
 use crate::{
     errors::ContractError,
     execute::consts::REPLY_WITHDRAW_SUBMESSAGE_SUCCESS,
-    state::{context::WITHDRAW, DENOM_MANAGER, LIQUIDITY_MANAGER, OWNER},
+    state::{context::WITHDRAW, DENOM_MANAGER, LIQUIDITY_MANAGER, OWNER, PUBLIC_KEY},
+    verify::pub_to_addr,
     CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -24,6 +25,13 @@ pub fn instantiate(
     LIQUIDITY_MANAGER.save(deps.storage, &msg.liquidity_manager)?;
     DENOM_MANAGER.save(deps.storage, &msg.denom_manager)?;
 
+    let public_key_addr = pub_to_addr(msg.public_key.clone().into(), "osmo")?;
+
+    if public_key_addr != info.sender {
+        return Err(ContractError::InvalidPubKey {});
+    }
+
+    PUBLIC_KEY.save(deps.storage, &msg.public_key)?;
     Ok(Response::new()
         .add_attribute("method", "instantiate")
         .add_attribute("owner", info.sender))
@@ -39,7 +47,10 @@ pub fn execute(
     use crate::execute::{gov, managers, operation, rbac};
 
     match msg {
-        ExecuteMsg::ChangeOwner { new_owner } => rbac::change_owner(deps, env, info, new_owner),
+        ExecuteMsg::ChangeOwner {
+            new_owner,
+            public_key,
+        } => rbac::change_owner(deps, env, info, new_owner, public_key),
         ExecuteMsg::ChangeLiquidityManager {
             new_liquidity_manager,
         } => managers::change_liquidity_manager(deps, env, info, new_liquidity_manager),
@@ -53,9 +64,6 @@ pub fn execute(
             operation::execute(deps, env, info, msgs, signature)
         }
         ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
-        ExecuteMsg::ChangePublicKey { public_key } => {
-            gov::change_public_key(deps, info, public_key)
-        }
         ExecuteMsg::Release {} => gov::release(deps, env, info),
     }
 }
@@ -93,6 +101,5 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
 
     match msg {
         QueryMsg::GetConfig {} => query::get_config(deps, env),
-        QueryMsg::GetPublicKey {} => query::get_public_key(deps),
     }
 }
