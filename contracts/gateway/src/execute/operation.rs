@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    attr, to_binary, Binary, CosmosMsg, DepsMut, Env, HexBinary, MessageInfo, Response, WasmMsg,
+    attr, to_binary, CosmosMsg, DepsMut, Env, HexBinary, MessageInfo, Response, WasmMsg,
 };
 use cw_utils::one_coin;
 use mitosis_interface::liquidity_manager;
@@ -15,7 +15,7 @@ pub fn send(
     env: Env,
     info: MessageInfo,
     op_id: u64,
-    op_args: Vec<Binary>,
+    op_args: Vec<String>,
 ) -> Result<Response, ContractError> {
     let amount = one_coin(&info).map_err(|_| ContractError::MustPayOne {})?;
 
@@ -121,7 +121,7 @@ mod test {
             env.clone(),
             info.clone(),
             1u64,
-            vec![Binary::from(vec![1u8, 2u8])],
+            vec![String::from("hello")],
         )
         .unwrap();
 
@@ -134,7 +134,7 @@ mod test {
                 attr("op_id", "1"),
                 attr(
                     "op_args",
-                    serde_json::to_string(&vec![Binary::from(vec![1u8, 2u8])]).unwrap()
+                    serde_json::to_string(&vec![String::from("hello")]).unwrap()
                 )
             ]
         );

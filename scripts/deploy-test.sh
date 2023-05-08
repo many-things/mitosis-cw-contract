@@ -1,16 +1,16 @@
 #!/bin/sh
 
-OWNER=${GOV:-"osmo1c5etmwyca4hyf0nswjtkarxm5n2hqqrjjv07vs"}
+OWNER=${GOV:-"osmo1jjx3kvnf0jk3fu2twfgt8wld9qtzfw08nyvm65"}
 BEAKER=${BEAKER:-"beaker"}
 DAEMON=${DAEMON:-"osmosisd"}
-MNEMONIC=${SIGNER_MNEMONIC:-"derive miracle banana bright timber energy noodle half they jealous gossip flight keen reject kid goose together collect lecture sentence ball solid fan stereo"}
+MNEMONIC=${SIGNER_MNEMONIC:-"tell disagree region twenty shock affair pipe universe popular eye resource pudding upper fashion south often spare must stamp zone pet double ski north"}
 DENOM=${DENOM:-"factory/osmo1jjx3kvnf0jk3fu2twfgt8wld9qtzfw08nyvm65/uusdc"}
 LP_DENOM=${LP_DENOM:-"ulpusdc"}
-PUBLIC_KEY=${PUBLIC_KEY:-"03a2c30093c090b47ef468351e071eb718397487b7a6ab860b1b9abb87d459ae4b"}
+PUBLIC_KEY=${PUBLIC_KEY:-"039430c507a204703f511663612681ce253b0b2117edb85d8d8f807ea033e27be2"}
 
-SIGNER="test-deployer"
-beaker key set "$SIGNER" "$MNEMONIC" -y
-(echo "y"; echo "$MNEMONIC") | $DAEMON keys add --recover "$SIGNER"
+SIGNER="cw-deployer"
+# beaker key set "$SIGNER" "$MNEMONIC" -y
+# (echo "y"; echo "$MNEMONIC") | $DAEMON keys add --recover "$SIGNER"
 
 TOKENFACTORY_FEE=$(
     $DAEMON query tokenfactory params \
@@ -48,7 +48,7 @@ beaker wasm deploy \
     mitosis-denom-manager
 
 STATES=$([ "$NETWORK" = "local" ] && echo "state.local.json" || echo "state.json")
-DENOM_MGR_ADDR=$(cat $(pwd)/.beaker/$STATES | jq -r '.'$NETWORK'["mitosis-denom-manager"].addresses.default')
+DENOM_MGR_ADDR=$(cat $(pwd)/.beaker/state.json | jq -r '.'$NETWORK'["mitosis-denom-manager"].addresses.default')
 echo "DMGR ADDR: $DENOM_MGR_ADDR"
 
 check "$DENOM_MGR_ADDR" "DENOM_MGR_ADDR"
@@ -68,9 +68,7 @@ beaker wasm deploy \
     $OPTIMIZE_FLAG \
     mitosis-liquidity-manager
 LMGR_ADDR=$(cat $(pwd)/.beaker/state.json | jq -r '.'$NETWORK'["mitosis-liquidity-manager"].addresses.default')
-
-check "$LMGR_ADDR" "LMGR_ADDR"
-
+echo "LMGR ADDR: $LMGR_ADDR"
 
 echo "================ Deploying gateway contracts ================"
 GW_INIT_MSG=$(
