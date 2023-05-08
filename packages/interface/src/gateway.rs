@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, Binary, CosmosMsg, HexBinary};
+use cosmwasm_std::{Addr, CosmosMsg, HexBinary};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -25,7 +25,7 @@ pub enum ExecuteMsg {
     },
     Send {
         op_id: u64,
-        op_args: Vec<Binary>,
+        op_args: Vec<String>,
     },
     Execute {
         msgs: Vec<CosmosMsg>,
