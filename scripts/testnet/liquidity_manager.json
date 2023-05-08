@@ -1,4 +1,5 @@
 {
   "denom": "",
-  "lp_denom": ""
+  "lp_denom": "",
+  "unbonding_period": 300
 }

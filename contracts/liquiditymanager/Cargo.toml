@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Eric <hashableric@gmail.com>"]
 edition = "2021"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [features]
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
