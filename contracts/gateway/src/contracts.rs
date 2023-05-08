@@ -57,9 +57,7 @@ pub fn execute(
         ExecuteMsg::ChangeDenomManager { new_denom_manager } => {
             managers::change_denom_manager(deps, env, info, new_denom_manager)
         }
-        ExecuteMsg::Send { to, op_id, op_args } => {
-            operation::send(deps, env, info, to, op_id, op_args)
-        }
+        ExecuteMsg::Send { op_id, op_args } => operation::send(deps, env, info, op_id, op_args),
         ExecuteMsg::Execute { msgs, signature } => {
             operation::execute(deps, env, info, msgs, signature)
         }

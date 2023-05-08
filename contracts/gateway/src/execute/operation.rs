@@ -14,7 +14,6 @@ pub fn send(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    to: String,
     op_id: u64,
     op_args: Vec<Binary>,
 ) -> Result<Response, ContractError> {
@@ -36,7 +35,6 @@ pub fn send(
             attr("action", "send"),
             attr("executor", info.sender),
             attr("amount", amount.to_string()),
-            attr("to", to),
             attr("op_id", op_id.to_string()),
             attr("op_args", serde_json::to_string(&op_args).unwrap()),
         ]);
@@ -101,8 +99,7 @@ mod test {
         let addr = Addr::unchecked(ADDR1);
         let info = mock_info(addr.as_str(), &[]);
 
-        let not_send_asset_err =
-            send(deps.as_mut(), env, info, String::from(ADDR2), 1u64, vec![]).unwrap_err();
+        let not_send_asset_err = send(deps.as_mut(), env, info, 1u64, vec![]).unwrap_err();
         assert!(matches!(not_send_asset_err, ContractError::MustPayOne {}))
     }
 
@@ -114,7 +111,6 @@ mod test {
         let addr = Addr::unchecked(ADDR1);
         let contract = Addr::unchecked("contract");
         let info = mock_info(addr.as_str(), &coins(200000, "uosmo"));
-        let to = String::from(ADDR2);
 
         LIQUIDITY_MANAGER
             .save(deps.as_mut().storage, &contract)
@@ -124,7 +120,6 @@ mod test {
             deps.as_mut(),
             env.clone(),
             info.clone(),
-            to.clone(),
             1u64,
             vec![Binary::from(vec![1u8, 2u8])],
         )
@@ -136,7 +131,6 @@ mod test {
                 attr("action", "send"),
                 attr("executor", addr),
                 attr("amount", info.funds[0].to_string()),
-                attr("to", to),
                 attr("op_id", "1"),
                 attr(
                     "op_args",
@@ -169,13 +163,12 @@ mod test {
             sender.as_str(),
             &[coin(200000, "uosmo"), coin(100000, "uusdc")],
         );
-        let to = String::from(ADDR2);
 
         LIQUIDITY_MANAGER
             .save(deps.as_mut().storage, &contract)
             .unwrap();
 
-        let result = send(deps.as_mut(), env, info, to, 1u64, vec![]).unwrap_err();
+        let result = send(deps.as_mut(), env, info, 1u64, vec![]).unwrap_err();
         assert!(matches!(result, ContractError::MustPayOne {}))
     }
 

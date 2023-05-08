@@ -24,7 +24,6 @@ pub enum ExecuteMsg {
         expires_at: u64,
     },
     Send {
-        to: String,
         op_id: u64,
         op_args: Vec<Binary>,
     },
