@@ -1,6 +1,6 @@
 {
   "out": "./docs",
-  "name": "mitosis-cw-contract",
+  "name": "@many-things/mitosis-cw-contract",
   "theme": "markdown",
   "readme": "none",
   "tsconfig": "./tsconfig.bundle.json"

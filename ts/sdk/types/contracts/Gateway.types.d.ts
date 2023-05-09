@@ -3,14 +3,14 @@
 * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
-export type Addr = string;
-export type HexBinary = string;
+export declare type Addr = string;
+export declare type HexBinary = string;
 export interface InstantiateMsg {
     denom_manager: Addr;
     liquidity_manager: Addr;
     public_key: HexBinary;
 }
-export type ExecuteMsg = {
+export declare type ExecuteMsg = {
     change_owner: {
         new_owner: Addr;
         new_public_key: HexBinary;
@@ -40,7 +40,7 @@ export type ExecuteMsg = {
 } | {
     release: {};
 };
-export type CosmosMsgForEmpty = {
+export declare type CosmosMsgForEmpty = {
     bank: BankMsg;
 } | {
     custom: Empty;
@@ -61,7 +61,7 @@ export type CosmosMsgForEmpty = {
 } | {
     gov: GovMsg;
 };
-export type BankMsg = {
+export declare type BankMsg = {
     send: {
         amount: Coin[];
         to_address: string;
@@ -73,8 +73,8 @@ export type BankMsg = {
         [k: string]: unknown;
     };
 };
-export type Uint128 = string;
-export type StakingMsg = {
+export declare type Uint128 = string;
+export declare type StakingMsg = {
     delegate: {
         amount: Coin;
         validator: string;
@@ -94,7 +94,7 @@ export type StakingMsg = {
         [k: string]: unknown;
     };
 };
-export type DistributionMsg = {
+export declare type DistributionMsg = {
     set_withdraw_address: {
         address: string;
         [k: string]: unknown;
@@ -105,8 +105,8 @@ export type DistributionMsg = {
         [k: string]: unknown;
     };
 };
-export type Binary = string;
-export type IbcMsg = {
+export declare type Binary = string;
+export declare type IbcMsg = {
     transfer: {
         amount: Coin;
         channel_id: string;
@@ -127,9 +127,9 @@ export type IbcMsg = {
         [k: string]: unknown;
     };
 };
-export type Timestamp = Uint64;
-export type Uint64 = string;
-export type WasmMsg = {
+export declare type Timestamp = Uint64;
+export declare type Uint64 = string;
+export declare type WasmMsg = {
     execute: {
         contract_addr: string;
         funds: Coin[];
@@ -164,14 +164,14 @@ export type WasmMsg = {
         [k: string]: unknown;
     };
 };
-export type GovMsg = {
+export declare type GovMsg = {
     vote: {
         proposal_id: number;
         vote: VoteOption;
         [k: string]: unknown;
     };
 };
-export type VoteOption = "yes" | "no" | "abstain" | "no_with_veto";
+export declare type VoteOption = "yes" | "no" | "abstain" | "no_with_veto";
 export interface Coin {
     amount: Uint128;
     denom: string;
@@ -190,7 +190,7 @@ export interface IbcTimeoutBlock {
     revision: number;
     [k: string]: unknown;
 }
-export type QueryMsg = {
+export declare type QueryMsg = {
     get_config: {};
 };
 export interface ConfigResponse {

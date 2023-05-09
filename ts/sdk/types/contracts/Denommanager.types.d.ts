@@ -5,7 +5,7 @@
 */
 export interface InstantiateMsg {
 }
-export type ExecuteMsg = {
+export declare type ExecuteMsg = {
     add_alias: {
         denom: string;
         token: string;
@@ -31,8 +31,8 @@ export type ExecuteMsg = {
 } | {
     release: {};
 };
-export type Addr = string;
-export type QueryMsg = {
+export declare type Addr = string;
+export declare type QueryMsg = {
     get_config: {};
 } | {
     convert: {

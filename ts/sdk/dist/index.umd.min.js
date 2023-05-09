@@ -1,5 +1,5 @@
 /*!
- * mitosis-cw-contract-sdk v 0.0.1
+ * @many-things/mitosis-cw-contract v 0.0.1
  * (c) hashableric <hashableric@gmail.com>
  * Released under the MIT OR Apache-2.0 License.
  */

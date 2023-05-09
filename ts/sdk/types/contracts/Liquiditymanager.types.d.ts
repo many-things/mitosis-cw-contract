@@ -8,7 +8,7 @@ export interface InstantiateMsg {
     lp_denom: string;
     unbonding_period: number;
 }
-export type ExecuteMsg = {
+export declare type ExecuteMsg = {
     deposit: {
         depositor?: Addr | null;
     };
@@ -56,14 +56,14 @@ export type ExecuteMsg = {
         unbonding_period: number;
     };
 };
-export type Addr = string;
-export type Uint128 = string;
+export declare type Addr = string;
+export declare type Uint128 = string;
 export interface Coin {
     amount: Uint128;
     denom: string;
     [k: string]: unknown;
 }
-export type QueryMsg = {
+export declare type QueryMsg = {
     get_config: {};
 } | {
     pause_info: {};
