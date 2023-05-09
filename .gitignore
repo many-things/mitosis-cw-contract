@@ -21,3 +21,4 @@ Cargo.lock
 **/state.local.json
 
 .beaker/**/*
+.npmrc
