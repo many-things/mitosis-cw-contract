@@ -1,7 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response, SubMsg,
+    CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response, SubMsg, Uint128,
 };
 use cw2::set_contract_version;
 use mitosis_interface::liquidity_manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
@@ -12,7 +12,9 @@ use crate::{
         consts::{REPLY_CREATE_DENOM_SUCCESS, REPLY_WITHDRAW_SUBMESSAGE_FAILURE},
         lp,
     },
-    state::{bond::init_unbonds_id, rbac::OWNER, DenomInfo, DENOM, PAUSED},
+    state::{
+        bond::init_unbonds_id, delegates::DELEGATE_BALANCE, rbac::OWNER, DenomInfo, DENOM, PAUSED,
+    },
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
 
@@ -27,6 +29,7 @@ pub fn instantiate(
 
     OWNER.save(deps.storage, &info.sender)?;
     PAUSED.save(deps.storage, &Default::default())?;
+    DELEGATE_BALANCE.save(deps.storage, &Uint128::new(0))?;
 
     let denom = DenomInfo {
         denom: msg.denom,
@@ -116,5 +119,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<QueryResponse, Contr
         QueryMsg::GetBond { bonder } => query::get_bonds(deps, bonder),
         QueryMsg::GetUnbond { unbond_id } => query::get_unbond(deps, unbond_id),
         QueryMsg::GetUnbondsByOwner { owner } => query::get_unbonds_by_owner(deps, owner),
+        QueryMsg::GetTotalDelegates {} => query::get_total_delegates(deps),
     }
 }

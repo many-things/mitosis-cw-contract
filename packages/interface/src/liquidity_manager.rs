@@ -62,6 +62,9 @@ pub enum QueryMsg {
     #[returns(GetBalanceResponse)]
     GetBalance { depositor: Addr },
 
+    #[returns(GetTotalDelegatesResponse)]
+    GetTotalDelegates {},
+
     #[returns(GetBondResponse)]
     GetBond { bonder: Addr },
 
@@ -109,4 +112,9 @@ pub struct GetUnbondResponse {
 #[cw_serde]
 pub struct GetUnbondListResponse {
     pub items: Vec<GetUnbondResponse>,
+}
+
+#[cw_serde]
+pub struct GetTotalDelegatesResponse {
+    pub amount: Coin,
 }

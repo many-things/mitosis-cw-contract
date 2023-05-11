@@ -1,13 +1,14 @@
-use cosmwasm_std::{to_binary, Addr, Deps, Env, QueryResponse};
+use cosmwasm_std::{to_binary, Addr, Coin, Deps, Env, QueryResponse};
 use mitosis_interface::liquidity_manager::{
-    ConfigResponse, GetBalanceResponse, GetBondResponse, GetUnbondListResponse, GetUnbondResponse,
-    PauseInfoResponse,
+    ConfigResponse, GetBalanceResponse, GetBondResponse, GetTotalDelegatesResponse,
+    GetUnbondListResponse, GetUnbondResponse, PauseInfoResponse,
 };
 
 use crate::{
     state::{
         balances::inquiry_balance,
         bond::{query_bond, query_unbond, query_unbonds_by_owner},
+        delegates::DELEGATE_BALANCE,
         rbac::OWNER,
         ConfigInfo, DenomInfo, CONFIG, DENOM, PAUSED,
     },
@@ -79,5 +80,17 @@ pub fn get_unbonds_by_owner(deps: Deps, owner: Addr) -> Result<QueryResponse, Co
 
     Ok(to_binary(&GetUnbondListResponse {
         items: response_items,
+    })?)
+}
+
+pub fn get_total_delegates(deps: Deps) -> Result<QueryResponse, ContractError> {
+    let denom_info = DENOM.load(deps.storage)?;
+    let delegate_amounts = DELEGATE_BALANCE.load(deps.storage)?;
+
+    Ok(to_binary(&GetTotalDelegatesResponse {
+        amount: Coin {
+            denom: denom_info.lp_denom,
+            amount: delegate_amounts,
+        },
     })?)
 }
