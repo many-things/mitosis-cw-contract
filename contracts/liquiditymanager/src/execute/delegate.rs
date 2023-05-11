@@ -6,7 +6,10 @@ use osmosis_std::types::{
 };
 
 use crate::{
-    state::PAUSED,
+    state::{
+        delegates::{delegate_balance, undelegate_balance},
+        PAUSED,
+    },
     state::{DenomInfo, DENOM},
     ContractError,
 };
@@ -32,15 +35,18 @@ pub fn delegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     let send_message: CosmosMsg = MsgSend {
         from_address: env.contract.address.to_string(),
         to_address: info.sender.to_string(),
-        amount: vec![lp_amount.into()],
+        amount: vec![lp_amount.clone().into()],
     }
     .into();
+
+    let saved_balances = delegate_balance(deps.storage, lp_amount.amount)?;
 
     Ok(Response::new()
         .add_messages(vec![mint_message, send_message])
         .add_attribute("action", "delegate")
         .add_attribute("executor", info.sender)
-        .add_attribute("amount", balance))
+        .add_attribute("amount", balance)
+        .add_attribute("total", saved_balances))
 }
 
 pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
@@ -66,16 +72,19 @@ pub fn undelegate(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response
     }
     .into();
 
+    let left_amount = undelegate_balance(deps.storage, balance)?;
+
     Ok(Response::new()
         .add_messages(vec![burn_message, send_message])
         .add_attribute("action", "undelegate")
         .add_attribute("executor", info.sender)
-        .add_attribute("amount", balance))
+        .add_attribute("amount", balance)
+        .add_attribute("total", left_amount))
 }
 
 #[cfg(test)]
 mod test {
-    use crate::state::{DenomInfo, PauseInfo, DENOM, PAUSED};
+    use crate::state::{delegates::DELEGATE_BALANCE, DenomInfo, PauseInfo, DENOM, PAUSED};
     use cosmwasm_std::{
         attr, coin,
         testing::{mock_dependencies, mock_env, mock_info},
@@ -159,6 +168,9 @@ mod test {
 
         resume(deps.as_mut().storage, env.block.time.seconds());
 
+        DELEGATE_BALANCE
+            .save(deps.as_mut().storage, &Uint128::new(0))
+            .unwrap();
         let response = delegate(deps.as_mut(), env.clone(), info).unwrap();
 
         assert_eq!(
@@ -181,6 +193,7 @@ mod test {
                 attr("action", "delegate"),
                 attr("executor", addr.to_string()),
                 attr("amount", Uint128::new(200000)),
+                attr("total", Uint128::new(200000)),
             ]
         )
     }
@@ -225,6 +238,9 @@ mod test {
 
         resume(deps.as_mut().storage, env.block.time.seconds());
 
+        DELEGATE_BALANCE
+            .save(deps.as_mut().storage, &Uint128::new(300000))
+            .unwrap();
         let response = undelegate(deps.as_mut(), env.clone(), info).unwrap();
 
         assert_eq!(
@@ -247,6 +263,7 @@ mod test {
                 attr("action", "undelegate"),
                 attr("executor", addr.to_string()),
                 attr("amount", Uint128::new(200000)),
+                attr("total", Uint128::new(100000)),
             ]
         )
     }

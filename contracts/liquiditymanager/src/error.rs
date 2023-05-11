@@ -44,4 +44,7 @@ pub enum ContractError {
 
     #[error("Unbonding not finished")]
     UnbondingNotFinished {},
+
+    #[error("Undelegate more than delegated")]
+    InsufficientUndelegateAsset {},
 }
