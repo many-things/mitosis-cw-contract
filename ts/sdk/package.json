@@ -1,6 +1,6 @@
 {
   "name": "@many-things/mitosis-cw-contract",
-  "version": " 0.0.1",
+  "version": "0.0.4",
   "description": "",
   "cdn": "dist/index.umd.js",
   "main": "dist/index.js",

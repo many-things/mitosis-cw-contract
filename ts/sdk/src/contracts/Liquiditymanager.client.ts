@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { StdFee } from "@cosmjs/amino";
-import { InstantiateMsg, ExecuteMsg, Addr, Uint128, Coin, QueryMsg, GetBalanceResponse, GetBondResponse, ConfigResponse, GetUnbondResponse, GetUnbondListResponse, PauseInfoResponse } from "./Liquiditymanager.types";
+import { InstantiateMsg, ExecuteMsg, Addr, Uint128, Coin, QueryMsg, GetBalanceResponse, GetBondResponse, ConfigResponse, GetTotalDelegatesResponse, GetUnbondResponse, GetUnbondListResponse, PauseInfoResponse } from "./Liquiditymanager.types";
 export interface LiquiditymanagerReadOnlyInterface {
   contractAddress: string;
   getConfig: () => Promise<ConfigResponse>;
@@ -16,6 +16,7 @@ export interface LiquiditymanagerReadOnlyInterface {
   }: {
     depositor: Addr;
   }) => Promise<GetBalanceResponse>;
+  getTotalDelegates: () => Promise<GetTotalDelegatesResponse>;
   getBond: ({
     bonder
   }: {
@@ -42,6 +43,7 @@ export class LiquiditymanagerQueryClient implements LiquiditymanagerReadOnlyInte
     this.getConfig = this.getConfig.bind(this);
     this.pauseInfo = this.pauseInfo.bind(this);
     this.getBalance = this.getBalance.bind(this);
+    this.getTotalDelegates = this.getTotalDelegates.bind(this);
     this.getBond = this.getBond.bind(this);
     this.getUnbond = this.getUnbond.bind(this);
     this.getUnbondsByOwner = this.getUnbondsByOwner.bind(this);
@@ -66,6 +68,11 @@ export class LiquiditymanagerQueryClient implements LiquiditymanagerReadOnlyInte
       get_balance: {
         depositor
       }
+    });
+  };
+  getTotalDelegates = async (): Promise<GetTotalDelegatesResponse> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      get_total_delegates: {}
     });
   };
   getBond = async ({

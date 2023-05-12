@@ -5,7 +5,7 @@
 */
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { StdFee } from "@cosmjs/amino";
-import { Addr, Uint128, Coin, GetBalanceResponse, GetBondResponse, ConfigResponse, GetUnbondResponse, GetUnbondListResponse, PauseInfoResponse } from "./Liquiditymanager.types";
+import { Addr, Uint128, Coin, GetBalanceResponse, GetBondResponse, ConfigResponse, GetTotalDelegatesResponse, GetUnbondResponse, GetUnbondListResponse, PauseInfoResponse } from "./Liquiditymanager.types";
 export interface LiquiditymanagerReadOnlyInterface {
     contractAddress: string;
     getConfig: () => Promise<ConfigResponse>;
@@ -13,6 +13,7 @@ export interface LiquiditymanagerReadOnlyInterface {
     getBalance: ({ depositor }: {
         depositor: Addr;
     }) => Promise<GetBalanceResponse>;
+    getTotalDelegates: () => Promise<GetTotalDelegatesResponse>;
     getBond: ({ bonder }: {
         bonder: Addr;
     }) => Promise<GetBondResponse>;
@@ -32,6 +33,7 @@ export declare class LiquiditymanagerQueryClient implements LiquiditymanagerRead
     getBalance: ({ depositor }: {
         depositor: Addr;
     }) => Promise<GetBalanceResponse>;
+    getTotalDelegates: () => Promise<GetTotalDelegatesResponse>;
     getBond: ({ bonder }: {
         bonder: Addr;
     }) => Promise<GetBondResponse>;

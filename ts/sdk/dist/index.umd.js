@@ -1,5 +1,5 @@
 /*!
- * @many-things/mitosis-cw-contract v 0.0.1
+ * @many-things/mitosis-cw-contract v0.0.4
  * (c) hashableric <hashableric@gmail.com>
  * Released under the MIT OR Apache-2.0 License.
  */
@@ -466,6 +466,13 @@
                     });
                 });
             };
+            this.getTotalDelegates = function () { return __awaiter(_this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    return [2 /*return*/, this.client.queryContractSmart(this.contractAddress, {
+                            get_total_delegates: {}
+                        })];
+                });
+            }); };
             this.getBond = function (_a) {
                 var bonder = _a.bonder;
                 return __awaiter(_this, void 0, void 0, function () {
@@ -507,6 +514,7 @@
             this.getConfig = this.getConfig.bind(this);
             this.pauseInfo = this.pauseInfo.bind(this);
             this.getBalance = this.getBalance.bind(this);
+            this.getTotalDelegates = this.getTotalDelegates.bind(this);
             this.getBond = this.getBond.bind(this);
             this.getUnbond = this.getUnbond.bind(this);
             this.getUnbondsByOwner = this.getUnbondsByOwner.bind(this);

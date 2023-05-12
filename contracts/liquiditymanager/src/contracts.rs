@@ -13,7 +13,8 @@ use crate::{
         lp,
     },
     state::{
-        bond::init_unbonds_id, delegates::DELEGATE_BALANCE, rbac::OWNER, DenomInfo, DENOM, PAUSED,
+        bond::init_unbonds_id, delegates::DELEGATE_BALANCE, rbac::OWNER, ConfigInfo, DenomInfo,
+        CONFIG, DENOM, PAUSED,
     },
     ContractError, CONTRACT_NAME, CONTRACT_VERSION,
 };
@@ -37,6 +38,11 @@ pub fn instantiate(
     };
     DENOM.save(deps.storage, &denom)?;
     init_unbonds_id(deps.storage)?;
+
+    let config = ConfigInfo {
+        unbonding_period: msg.unbonding_period,
+    };
+    CONFIG.save(deps.storage, &config)?;
 
     // Only consider single asset.
     let msg_create_denom: CosmosMsg = MsgCreateDenom {

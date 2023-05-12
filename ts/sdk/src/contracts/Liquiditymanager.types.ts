@@ -73,6 +73,8 @@ export type QueryMsg = {
     depositor: Addr;
   };
 } | {
+  get_total_delegates: {};
+} | {
   get_bond: {
     bonder: Addr;
   };
@@ -98,6 +100,9 @@ export interface ConfigResponse {
   lp_denom: string;
   owner: Addr;
   unbonding_period: number;
+}
+export interface GetTotalDelegatesResponse {
+  amount: Coin;
 }
 export interface GetUnbondResponse {
   amount: Uint128;

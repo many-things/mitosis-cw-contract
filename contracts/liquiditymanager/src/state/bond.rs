@@ -150,7 +150,13 @@ pub fn finish_unbond(
 }
 
 pub fn query_bond(storage: &dyn Storage, bonder: Addr) -> StdResult<BondInfo> {
-    BONDS.load(storage, bonder)
+    match BONDS.may_load(storage, bonder)? {
+        Some(bond_info) => Ok(bond_info),
+        None => Ok(BondInfo {
+            amount: Uint128::zero(),
+            bond_time: 0u64,
+        }),
+    }
 }
 
 pub fn query_unbond(storage: &dyn Storage, unbond_id: u64) -> StdResult<UnbondInfo> {
@@ -338,7 +344,7 @@ mod test {
     fn test_finish_unbond_success() {
         let bonder = Addr::unchecked(ADDR1_VALUE);
 
-        let mut storage = MockStorage::new();
+        let mut storage: cosmwasm_std::MemoryStorage = MockStorage::new();
         let env = mock_env();
 
         CONFIG
@@ -371,5 +377,31 @@ mod test {
 
         // successfully removed
         assert!(!unbonds().has(&storage, unbond_id))
+    }
+
+    #[test]
+    fn test_query_bond() {
+        let mut storage: cosmwasm_std::MemoryStorage = MockStorage::new();
+
+        let bonder = Addr::unchecked(ADDR1_VALUE);
+        let empty_bond = query_bond(&storage, bonder.clone()).unwrap();
+
+        assert_eq!(
+            empty_bond,
+            BondInfo {
+                amount: Uint128::zero(),
+                bond_time: 0u64
+            }
+        );
+
+        initialize_bond(&mut storage, bonder.clone(), Uint128::new(100000), 12);
+        let initialized_bond = query_bond(&storage, bonder).unwrap();
+        assert_eq!(
+            initialized_bond,
+            BondInfo {
+                amount: Uint128::new(100000),
+                bond_time: 12u64
+            }
+        )
     }
 }
