@@ -60,9 +60,9 @@ pub fn execute(
         ExecuteMsg::Send { op_id, op_args } => operation::send(deps, env, info, op_id, op_args),
         ExecuteMsg::Execute {
             msgs,
-            req_evt_id,
+            req_op_id,
             signature,
-        } => operation::execute(deps, env, info, msgs, req_evt_id, signature),
+        } => operation::execute(deps, env, info, msgs, req_op_id, signature),
         ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
         ExecuteMsg::Release {} => gov::release(deps, env, info),
     }

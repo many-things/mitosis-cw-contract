@@ -46,7 +46,7 @@ pub fn execute(
     _env: Env,
     info: MessageInfo,
     msgs: Vec<CosmosMsg>,
-    req_evt_id: u64,
+    req_op_id: u64,
     signature: HexBinary,
 ) -> Result<Response, ContractError> {
     // Relayer call this method. To withdraw asset from liquidity manager.
@@ -73,7 +73,7 @@ pub fn execute(
     let resp = Response::new().add_messages(msgs).add_attributes(vec![
         attr("action", "execute"),
         attr("executor", info.sender),
-        attr("req_evt_id", req_evt_id.to_string()),
+        attr("req_op_id", req_op_id.to_string()),
     ]);
 
     Ok(resp)
@@ -259,7 +259,7 @@ mod test {
             vec![
                 attr("action", "execute"),
                 attr("executor", owner.clone()),
-                attr("req_evt_id", "0")
+                attr("req_op_id", "0")
             ]
         );
         assert_eq!(

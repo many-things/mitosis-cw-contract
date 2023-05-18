@@ -29,7 +29,7 @@ pub enum ExecuteMsg {
     },
     Execute {
         msgs: Vec<CosmosMsg>,
-        req_evt_id: u64,
+        req_op_id: u64,
         signature: HexBinary,
     },
     Release {},
