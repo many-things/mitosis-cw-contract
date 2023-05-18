@@ -29,13 +29,14 @@ pub enum ExecuteMsg {
     },
     Execute {
         msgs: Vec<CosmosMsg>,
+        req_evt_id: u64,
         signature: HexBinary,
     },
     Release {},
 }
 
 #[cw_serde]
-pub enum MigrateMsg {}
+pub struct MigrateMsg {}
 
 #[cw_serde]
 #[derive(QueryResponses)]

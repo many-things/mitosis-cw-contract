@@ -58,9 +58,11 @@ pub fn execute(
             managers::change_denom_manager(deps, env, info, new_denom_manager)
         }
         ExecuteMsg::Send { op_id, op_args } => operation::send(deps, env, info, op_id, op_args),
-        ExecuteMsg::Execute { msgs, signature } => {
-            operation::execute(deps, env, info, msgs, signature)
-        }
+        ExecuteMsg::Execute {
+            msgs,
+            req_evt_id,
+            signature,
+        } => operation::execute(deps, env, info, msgs, req_evt_id, signature),
         ExecuteMsg::Pause { expires_at } => gov::pause(deps, env, info, expires_at),
         ExecuteMsg::Release {} => gov::release(deps, env, info),
     }
