@@ -6,7 +6,7 @@ use mitosis_interface::liquidity_manager;
 
 use crate::{
     errors::ContractError,
-    state::{assert_owned, LIQUIDITY_MANAGER, PUBLIC_KEY},
+    state::{LIQUIDITY_MANAGER, PUBLIC_KEY},
     verify::sha256_digest,
 };
 
@@ -49,9 +49,6 @@ pub fn execute(
     req_op_id: u64,
     signature: HexBinary,
 ) -> Result<Response, ContractError> {
-    // Relayer call this method. To withdraw asset from liquidity manager.
-    assert_owned(deps.storage, info.sender.clone())?;
-
     let public_key = PUBLIC_KEY
         .load(deps.storage)
         .map_err(|_| ContractError::PublicKeyNotRegistered {})?;
